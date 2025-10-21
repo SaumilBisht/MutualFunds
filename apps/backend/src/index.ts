@@ -3,6 +3,7 @@ import cors from "cors"
 import { authRouter } from "./routes/auth.js";
 import { userRouter } from "./routes/user.js";
 import { signRouter } from "./routes/signature.js";
+import { ekycRouter } from "./routes/ekyc.js";
 
 const app=express();
 app.use(express.json());
@@ -22,6 +23,7 @@ app.get("/",async(req,res)=>{
 app.use('/auth', authRouter);
 app.use('/user', userRouter);
 app.use('/signature',signRouter);
+app.use("/ekyc", ekycRouter);
 
 app.listen(3002);
 

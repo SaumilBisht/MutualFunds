@@ -50,3 +50,14 @@ export const financialInfoSchema = z.object({
   ]),
   taxResidency: z.enum(["INDIA", "NRI", "FOREIGN_NATIONAL"]),
 });
+
+export const panDobSchema = z.object({
+  pan: z.string()
+    .trim()
+    .length(10, "PAN must be 10 characters")
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, "Invalid PAN format"),
+  dob: z.string()
+    .refine(val => {
+      return /^\d{4}-\d{2}-\d{2}$/.test(val);
+    }, "Date of Birth must be in YYYY-MM-DD format"),
+});
