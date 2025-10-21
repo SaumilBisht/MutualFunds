@@ -45,7 +45,7 @@ router.post("/pan-dob-verify", verifyAuth, async (req, res) => {
       pan,
       dob,
     });
-
+    console.log(panResp)
     if (panResp.data.status !== "VERIFIED") 
       {
       return res.status(400).json({ success: false, message: "Invalid PAN or DOB" });
@@ -61,7 +61,7 @@ router.post("/pan-dob-verify", verifyAuth, async (req, res) => {
     });
 
     const kraData = kraResp.data;
-
+    console.log(kraData);
     let finalStatus: "PENDING" | "VERIFIED" = "PENDING";
     let ckycRef = null;
 
