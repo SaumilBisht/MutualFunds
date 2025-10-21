@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import axios from "axios";
 import { prisma } from "db/client";
-import { verifyAuth } from "../middlewares/auth";
+import { verifyAuth } from "../middlewares/auth.js";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
