@@ -5,6 +5,8 @@ import { userRouter } from "./routes/user.js";
 import { signRouter } from "./routes/signature.js";
 import { ekycRouter } from "./routes/ekyc.js";
 import { nseRouter } from "./routes/nseRoutes.js";
+import mfRoutes from "./routes/mfRoutes.js";
+import { scheduleAmfiFetch } from "./services/amfiService.js";
 
 const app=express();
 app.use(express.json());
@@ -26,6 +28,13 @@ app.use('/user', userRouter);
 app.use('/signature',signRouter);
 app.use("/ekyc", ekycRouter);
 app.use('/api/nse',nseRouter)
+app.use("/mf", mfRoutes);
 
-app.listen(3002);
+// Initialize AMFI data fetching and caching
+console.log("[index] Initializing AMFI service...");
+scheduleAmfiFetch();
+
+app.listen(3002, () => {
+  console.log("[index] Server listening on port 3002");
+});
 
