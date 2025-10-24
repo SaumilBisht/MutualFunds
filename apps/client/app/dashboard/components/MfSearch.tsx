@@ -1,5 +1,6 @@
 "use client"
 
+import axios from "axios"
 import { useState } from "react"
 
 export default function MfSearch({ setSchemes, setTotal }: any) {
@@ -11,11 +12,11 @@ export default function MfSearch({ setSchemes, setTotal }: any) {
     if (!query.trim()) return
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:3002/mf/search?q=${encodeURIComponent(query)}&limit=100`)
-      const data = await res.json()
-      if (data.success) {
-        setSchemes(data.data)
-        setTotal(data.meta.total)
+      const res = await axios.get(`http://localhost:3002/mf/search?q=${encodeURIComponent(query)}&limit=100`)
+
+      if (res.data.success) {
+        setSchemes(res.data.data)
+        setTotal(res.data.meta.total)
       }
     } catch (err) {
       console.error("Search failed:", err)

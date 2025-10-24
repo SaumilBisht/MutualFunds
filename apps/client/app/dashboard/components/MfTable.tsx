@@ -1,5 +1,5 @@
 "use client"
-
+import axios from "axios"
 import { useEffect, useState } from "react"
 import MfSearch from "./MfSearch"
 import Link from "next/link"
@@ -19,20 +19,20 @@ export default function MfTable() {
   const limit = 20
 
   const fetchSchemes = async (pageNum: number) => {
-    setLoading(true)
-    try {
-      const res = await fetch(`http://localhost:3002/mf/schemes?page=${pageNum}&limit=${limit}`)
-      const data = await res.json()
-      if (data.success) {
-        setSchemes(data.data)
-        setTotal(data.meta.total)
-      }
-    } catch (err) {
-      console.error("Failed to fetch schemes", err)
-    } finally {
-      setLoading(false)
+  setLoading(true)
+  try {
+    const res = await axios.get(`http://localhost:3002/mf/schemes?page=${pageNum}&limit=${limit}`)
+    const data = res.data
+    if (data.success) {
+      setSchemes(data.data)
+      setTotal(data.meta.total)
     }
+  } catch (err) {
+    console.error("Failed to fetch schemes", err)
+  } finally {
+    setLoading(false)
   }
+}
 
   useEffect(() => {
     fetchSchemes(page)
