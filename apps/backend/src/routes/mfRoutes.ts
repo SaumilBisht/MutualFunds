@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { getAmfiCached } from "../services/amfiService.js";
 import { getSchemeEnrichment, getSchemeLogo } from "../services/schemeData.js";
+import { getNavHistory } from "../services/navHistoryService.js";
 
 const mfRouter:Router = express.Router();
 
@@ -59,5 +60,26 @@ mfRouter.get("/search", async (req, res, next) => {
   }
 });
 
+// NAV History endpoint with Redis caching (30 days)
+mfRouter.get("/nav-history/:code", async (req, res, next) => {
+  try {
+    const code = String(req.params.code);
+    console.log(`[mfRoutes] /nav-history/${code} endpoint hit`);
+    
+    const navHistory = await getNavHistory(code);
+    
+    if (!navHistory) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "NAV history not found for this scheme" 
+      });
+    }
+
+    res.json({ success: true, data: navHistory });
+  } catch (err) {
+    console.error("[mfRoutes] Error in /nav-history/:code:", err);
+    next(err);
+  }
+});
 
 export default mfRouter;
