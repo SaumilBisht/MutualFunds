@@ -9,7 +9,7 @@ interface NavDataPoint {
   nav: string;
 }
 
-interface NavHistoryData {
+export interface NavHistoryData {
   schemeCode: string;
   schemeName: string;
   fundHouse: string;
@@ -24,6 +24,12 @@ interface NavHistoryData {
     yearHigh: number;
     yearLow: number;
   };
+  returns?: {
+    sixMonths: string | null;
+    oneYear: string | null;
+    threeYears: string | null;
+    fiveYears: string | null;
+  };
   cachedAt: string;
 }
 
@@ -37,7 +43,7 @@ const PERIODS = [
   { label: "All", days: null },
 ];
 
-export function NavChart({ schemeCode }: { schemeCode: string }) {
+export function NavChart({ schemeCode, onDataLoad }: { schemeCode: string; onDataLoad?: (data: NavHistoryData) => void }) {
   const [selectedPeriod, setSelectedPeriod] = useState("1Y");
   const [data, setData] = useState<NavHistoryData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +57,10 @@ export function NavChart({ schemeCode }: { schemeCode: string }) {
         const res = await axios.get(`http://localhost:3002/mf/nav-history/${schemeCode}`);
         if (res.data.success) {
           setData(res.data.data);
+          
+          if (onDataLoad) {
+            onDataLoad(res.data.data);
+          }
         } else {
           setError(true);
         }
@@ -106,31 +116,38 @@ export function NavChart({ schemeCode }: { schemeCode: string }) {
   const isPositive = data.stats.changeToday >= 0;
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      
-      <div className="mb-6">
-        <div className="flex items-baseline gap-3 mb-1">
-          <span className="text-4xl font-bold text-gray-900">
+    <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+      <div className="mb-4 md:mb-6">
+        <div className="flex items-baseline gap-2 md:gap-3 mb-1">
+          <span className="text-2xl md:text-4xl font-bold text-gray-900">
             ₹{data.stats.currentNav.toFixed(2)}
           </span>
-          <span
-            className={`text-lg font-semibold ${
-              isPositive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {isPositive ? "+" : ""}
-            {data.stats.changeToday.toFixed(2)} ({data.stats.changeTodayPercent}%)
-          </span>
+          
+          <div className="relative group">
+            <span
+              className={`text-sm md:text-lg font-semibold cursor-help ${
+                isPositive ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {isPositive ? "+" : ""}{data.stats.changeTodayPercent}%
+            </span>
+            
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 md:px-3 md:py-2 bg-gray-900 text-white text-xs md:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+              Change from previous day
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-gray-500">Net Asset Value</p>
+        <p className="text-xs md:text-sm text-gray-500">
+          Net Asset Value as of {new Date(data.navData[0].date).toLocaleDateString('en-IN')}
+        </p>
       </div>
-
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-1.5 md:gap-2 mb-4 md:mb-6 flex-wrap">
         {PERIODS.map((period) => (
           <button
             key={period.label}
             onClick={() => setSelectedPeriod(period.label)}
-            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-3 py-1.5 md:px-5 md:py-2.5 rounded-lg text-xs md:text-sm font-medium transition-all ${
               selectedPeriod === period.label
                 ? "bg-gray-900 text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -141,7 +158,7 @@ export function NavChart({ schemeCode }: { schemeCode: string }) {
         ))}
       </div>
 
-      <div className="w-full h-80 mb-6">
+      <div className="w-full h-64 md:h-80 mb-4 md:mb-6">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
@@ -172,8 +189,12 @@ export function NavChart({ schemeCode }: { schemeCode: string }) {
               contentStyle={{
                 backgroundColor: "#fff",
                 border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                borderRadius: "6px",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                padding: "8px 12px",
+              }}
+              wrapperStyle={{
+                fontSize: window.innerWidth < 768 ? "11px" : "13px",
               }}
               labelFormatter={(date) => {
                 const d = new Date(date);
@@ -197,28 +218,28 @@ export function NavChart({ schemeCode }: { schemeCode: string }) {
         </ResponsiveContainer>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-gray-200">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <div>
           <p className="text-xs text-gray-500 mb-1">1 Year High</p>
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-base md:text-lg font-semibold text-gray-900">
             ₹{data.stats.weekHigh.toFixed(2)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">1 Year Low</p>
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-base md:text-lg font-semibold text-gray-900">
             ₹{data.stats.weekLow.toFixed(2)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">All-Time High</p>
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-base md:text-lg font-semibold text-gray-900">
             ₹{data.stats.yearHigh.toFixed(2)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">All-Time Low</p>
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-base md:text-lg font-semibold text-gray-900">
             ₹{data.stats.yearLow.toFixed(2)}
           </p>
         </div>

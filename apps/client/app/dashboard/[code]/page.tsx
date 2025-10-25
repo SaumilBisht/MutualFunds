@@ -29,6 +29,12 @@ export default function SchemeDetails() {
   const [scheme, setScheme] = useState<Scheme | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [navReturns, setNavReturns] = useState<{
+    sixMonths: string | null;
+    oneYear: string | null;
+    threeYears: string | null;
+    fiveYears: string | null;
+  } | null>(null)
 
   useEffect(() => {
     const fetchScheme = async () => {
@@ -109,24 +115,43 @@ export default function SchemeDetails() {
       </div>
 
       <div className="mb-6">
-        <NavChart schemeCode={scheme.schemeCode} />
+        <NavChart 
+          schemeCode={scheme.schemeCode} 
+          onDataLoad={(data) => {
+            if (data.returns) {
+              setNavReturns(data.returns);
+            }
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white shadow-md rounded-lg p-6 border">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Performance</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900">Trailing Returns</h2>
           <div className="space-y-2 text-sm text-gray-700">
             <div className="flex justify-between">
+              <span>6 Months Return:</span>
+              <span className="font-medium">
+                {navReturns?.sixMonths ? `${navReturns.sixMonths}%` : "—"}
+              </span>
+            </div>
+            <div className="flex justify-between">
               <span>1 Year Return:</span>
-              <span className="font-medium">{e?.returns?.oneY ?? "—"}</span>
+              <span className="font-medium">
+                {navReturns?.oneYear ? `${navReturns.oneYear}%` : (e?.returns?.oneY ?? "—")}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span>3 Year Return:</span>
-              <span className="font-medium">{e?.returns?.threeY ?? "—"}</span>
+              <span>3 Year Return (CAGR):</span>
+              <span className="font-medium">
+                {navReturns?.threeYears ? `${navReturns.threeYears}%` : (e?.returns?.threeY ?? "—")}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span>5 Year Return:</span>
-              <span className="font-medium">{e?.returns?.fiveY ?? "—"}</span>
+              <span>5 Year Return (CAGR):</span>
+              <span className="font-medium">
+                {navReturns?.fiveYears ? `${navReturns.fiveYears}%` : (e?.returns?.fiveY ?? "—")}
+              </span>
             </div>
           </div>
         </div>
@@ -152,22 +177,6 @@ export default function SchemeDetails() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="bg-white shadow-md rounded-lg p-6 border mt-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Top Holdings</h2>
-        {e?.holdings && e.holdings.length > 0 ? (
-          <div className="space-y-2">
-            {e.holdings.map((h, i) => (
-              <div key={i} className="flex justify-between text-sm text-gray-700 py-2 border-b last:border-b-0">
-                <span>{h.name}</span>
-                {h.allocation && <span className="font-medium text-gray-900">{h.allocation}</span>}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">No holding data available.</p>
-        )}
       </div>
 
       {e?.url && (

@@ -36,6 +36,12 @@ interface NavHistoryData {
     yearHigh: number;
     yearLow: number;
   };
+  returns: {
+    sixMonths: string | null;
+    oneYear: string | null;
+    threeYears: string | null;
+    fiveYears: string | null;
+  };
   cachedAt: string;
 }
 
@@ -73,6 +79,8 @@ export async function getNavHistory(schemeCode: string): Promise<NavHistoryData 
 
     const navValues = navData.map((d) => parseFloat(d.nav));
     const currentNav = navValues[0] || 0;
+    
+    // Calculate 1-day change (today vs yesterday)
     const previousNav = navValues[1] || currentNav;
     const changeToday = currentNav - previousNav;
     const changeTodayPercent = previousNav > 0 
@@ -85,6 +93,8 @@ export async function getNavHistory(schemeCode: string): Promise<NavHistoryData 
     const weekLow = Math.min(...last365Days);
     const yearHigh = Math.max(...navValues);
     const yearLow = Math.min(...navValues);
+
+    const returns = calculateReturns(navData);
 
     const result: NavHistoryData = {
       schemeCode: meta.scheme_code,
@@ -101,6 +111,7 @@ export async function getNavHistory(schemeCode: string): Promise<NavHistoryData 
         yearHigh,
         yearLow,
       },
+      returns,
       cachedAt: new Date().toISOString(),
     };
 
@@ -120,4 +131,42 @@ function parseDate(dateStr: string): string {
   if (parts.length !== 3) return dateStr;
   const [day, month, year] = parts;
   return `${year}-${month!.padStart(2, "0")}-${day!.padStart(2, "0")}`;
+}
+
+function calculateReturns(navData: NavDataPoint[]) {
+  if (!navData || navData.length === 0) {
+    return {
+      sixMonths: null,
+      oneYear: null,
+      threeYears: null,
+      fiveYears: null,
+    };
+  }
+
+  const currentNav = parseFloat(navData[0]!.nav);
+
+  const getNavAtIndex = (daysAgo: number): number | null => {
+    if (daysAgo >= navData.length) return null;
+    const navPoint = navData[daysAgo];
+    return navPoint ? parseFloat(navPoint.nav) : null;
+  };
+
+  const simpleReturn = (oldNav: number | null): string | null => {
+    if (!oldNav || oldNav === 0) return null;
+    const returns = ((currentNav - oldNav) / oldNav) * 100;
+    return returns.toFixed(2);
+  };
+
+  const cagr = (oldNav: number | null, years: number): string | null => {
+    if (!oldNav || oldNav === 0) return null;
+    const annualizedReturn = (Math.pow(currentNav / oldNav, 1 / years) - 1) * 100;
+    return annualizedReturn.toFixed(2);
+  };
+
+  return {
+    sixMonths: simpleReturn(getNavAtIndex(180)),     // ~6 months
+    oneYear: simpleReturn(getNavAtIndex(365)),       // 1 year
+    threeYears: cagr(getNavAtIndex(1095), 3),        // 3 years (CAGR)
+    fiveYears: cagr(getNavAtIndex(1825), 5),         // 5 years (CAGR)
+  };
 }
