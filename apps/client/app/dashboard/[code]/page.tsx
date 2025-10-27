@@ -4,6 +4,7 @@ import axios from "axios"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { NavChart } from "./components/NavChart"
+import { SipCalculator } from "./components/SipCalculator"
 
 interface Scheme {
   schemeCode: string
@@ -88,7 +89,7 @@ export default function SchemeDetails() {
   const e = scheme.enrichment
 
   return (
-    <main className="mt-[64px] py-6 px-8 max-w-7xl mx-auto">
+    <main className="mt-[18px] py-6 px-8 max-w-7xl mx-auto">
       <Link href="/dashboard" className="text-blue-600 hover:underline inline-block mb-6">
         ← Back to all schemes
       </Link>
@@ -177,6 +178,10 @@ export default function SchemeDetails() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <SipCalculator />
       </div>
 
       {e?.url && (
