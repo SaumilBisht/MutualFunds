@@ -3,13 +3,15 @@
 import { useState } from "react";
 
 export function SipCalculator() {
+  const [calculatorType, setCalculatorType] = useState<"sip" | "lumpsum">("sip");
   const [monthlyAmount, setMonthlyAmount] = useState(5000);
+  const [lumpsumAmount, setLumpsumAmount] = useState(100000);
   const [expectedReturn, setExpectedReturn] = useState(12);
   const [timePeriod, setTimePeriod] = useState(10);
 
   const calculateSIP = () => {
     const annualRate = expectedReturn / 100;
-    const monthlyRate = annualRate/12
+    const monthlyRate = annualRate / 12;
     const months = timePeriod * 12;
     
     const futureValue = monthlyAmount * 
@@ -27,46 +29,123 @@ export function SipCalculator() {
     };
   };
 
-  const results = calculateSIP();
+  const calculateLumpsum = () => {
+    const annualRate = expectedReturn / 100;
+    const years = timePeriod;
+    
+    // Lumpsum formula: FV = P × (1 + r)^n
+    const futureValue = lumpsumAmount * Math.pow(1 + annualRate, years);
+    const totalInvestment = lumpsumAmount;
+    const expectedReturns = futureValue - totalInvestment;
+    
+    return {
+      totalValue: Math.round(futureValue),
+      totalInvestment: Math.round(totalInvestment),
+      expectedReturns: Math.round(expectedReturns),
+    };
+  };
+
+  const results = calculatorType === "sip" ? calculateSIP() : calculateLumpsum();
 
   return (
     <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">SIP Calculator</h2>
+      {/* Header with Toggle */}
+      <div className="flex items-center gap-4 mb-6 md:mb-2">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">Returns Calculator</h2>
+        
+        <div className="inline-flex rounded-lg border border-gray-300 p-0.5 bg-gray-50">
+          <button
+            onClick={() => setCalculatorType("sip")}
+            className={`px-4 md:px-6 py-1.5 md:py-2 text-sm font-medium rounded-md transition-all ${
+              calculatorType === "sip"
+                ? "bg-gray-900 text-white shadow-sm"
+                : "text-gray-700 hover:text-gray-900"
+            }`}
+          >
+            SIP
+          </button>
+          <button
+            onClick={() => setCalculatorType("lumpsum")}
+            className={`px-4 md:px-6 py-1.5 md:py-2 text-sm font-medium rounded-md transition-all ${
+              calculatorType === "lumpsum"
+                ? "bg-gray-900 text-white shadow-sm"
+                : "text-gray-700 hover:text-gray-900"
+            }`}
+          >
+            Lumpsum
+          </button>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        <div className="space-y-6">
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-medium text-gray-700">
-                Monthly Investment
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">₹</span>
-                <input
-                  type="number"
-                  value={monthlyAmount}
-                  onChange={(e) => setMonthlyAmount(Number(e.target.value))}
-                  className="w-24 px-3 py-1.5 text-sm font-semibold text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  min="500"
-                  max="100000"
-                  step="500"
-                />
+        <div className="space-y-6 flex flex-col justify-center">
+          {calculatorType === "sip" ? (
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Monthly Investment
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    value={monthlyAmount}
+                    onChange={(e) => setMonthlyAmount(Number(e.target.value))}
+                    className="w-24 px-3 py-1.5 text-sm font-semibold text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    min="500"
+                    max="100000"
+                    step="500"
+                  />
+                </div>
+              </div>
+              <input
+                type="range"
+                value={monthlyAmount}
+                onChange={(e) => setMonthlyAmount(Number(e.target.value))}
+                min="500"
+                max="100000"
+                step="500"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>₹500</span>
+                <span>₹1,00,000</span>
               </div>
             </div>
-            <input
-              type="range"
-              value={monthlyAmount}
-              onChange={(e) => setMonthlyAmount(Number(e.target.value))}
-              min="500"
-              max="100000"
-              step="500"
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>₹500</span>
-              <span>₹1,00,000</span>
+          ) : (
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Lumpsum Amount
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    value={lumpsumAmount}
+                    onChange={(e) => setLumpsumAmount(Number(e.target.value))}
+                    className="w-28 px-3 py-1.5 text-sm font-semibold text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    min="10000"
+                    max="10000000"
+                    step="10000"
+                  />
+                </div>
+              </div>
+              <input
+                type="range"
+                value={lumpsumAmount}
+                onChange={(e) => setLumpsumAmount(Number(e.target.value))}
+                min="10000"
+                max="10000000"
+                step="10000"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>₹10,000</span>
+                <span>₹1,00,00,000</span>
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <div className="flex justify-between items-center mb-3">
@@ -135,7 +214,7 @@ export function SipCalculator() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col justify-center">
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-5 border border-gray-200">
             <div className="space-y-4">
               <div>
@@ -205,7 +284,11 @@ export function SipCalculator() {
             <ul className="space-y-2 text-xs text-gray-700">
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 mt-0.5">•</span>
-                <span>SIP helps average out market volatility through rupee cost averaging</span>
+                <span>
+                  {calculatorType === "sip" 
+                    ? "SIP helps average out market volatility through rupee cost averaging"
+                    : "Lumpsum investment is ideal when you have a large amount to invest at once"}
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 mt-0.5">•</span>
