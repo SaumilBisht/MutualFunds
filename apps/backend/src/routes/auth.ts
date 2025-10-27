@@ -63,6 +63,7 @@ router.post("/sync", async (req, res) => {
     return res.json({
       success: true,
       currentStep: user.currentStep,
+      kycStatus: user.kycStatus
     });
   }
   catch (err) {

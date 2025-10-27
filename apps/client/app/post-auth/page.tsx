@@ -24,6 +24,7 @@ export default function PostAuthPage()
         else if (currentStep === 3) router.push("/personal")
         else if (currentStep === 4) router.push("/finance")
         else if (currentStep === 5) router.push("/bankdetails")
+        else if(currentStep === 6) router.push("/sign")
         else router.push("/dashboard")
       } catch (err) {
         console.error("Sync error:", err)

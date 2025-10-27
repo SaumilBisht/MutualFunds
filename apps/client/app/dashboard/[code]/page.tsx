@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { NavChart } from "./components/NavChart"
 import { SipCalculator } from "./components/SipCalculator"
+import { InvestNow } from "./components/InvestNow"
 
 interface Scheme {
   schemeCode: string
@@ -115,15 +116,20 @@ export default function SchemeDetails() {
         </div>
       </div>
 
-      <div className="mb-6">
-        <NavChart 
-          schemeCode={scheme.schemeCode} 
-          onDataLoad={(data) => {
-            if (data.returns) {
-              setNavReturns(data.returns);
-            }
-          }}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2">
+          <NavChart 
+            schemeCode={scheme.schemeCode} 
+            onDataLoad={(data) => {
+              if (data.returns) {
+                setNavReturns(data.returns);
+              }
+            }}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <InvestNow schemeCode={scheme.schemeCode} schemeName={scheme.schemeName} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
