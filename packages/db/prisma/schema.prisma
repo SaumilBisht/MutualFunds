@@ -35,20 +35,60 @@ model User {
 
   nomineeName      String?
   nomineeRelation  String?
-  kycStatus        KycStatus   @default(PENDING)
-  ckycRefId        String?      // CKYC reference after PAN verification
-  digilockerToken  String?      // e.g. DigiLocker access token or reference
-  fatcaDeclaration Json?        // e.g. JSON of FATCA form answers
   languagePref     String?      // "en" or "hi"
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
+  kycStatus        KycStatus   @default(PENDING)
+  // DigiLocker KYC Data (NEW FIELDS)
+  digilockerKycId  String?      @unique  // DigiLocker session/KYC tracking ID
+  digilockerid     String?      @unique  // 36-char unique DigiLocker user ID
+  aadhaarLinked    Boolean      @default(false) // Whether Aadhaar is linked
+  aadhaarLastFour  String?      // Last 4 digits of Aadhaar (masked)
+  kycVerifiedAt    DateTime?    // Timestamp of KYC verification
+  
+  // Address from Aadhaar (extracted from DigiLocker)
+  addressLine1     String?      // House number, building
+  addressLine2     String?      // Street, locality
+  city             String?      // City/Town/Village
+  state            String?      // State
+  pincode          String?      // PIN code
+  country          String?      @default("India")
+
+  // DigiLocker tokens (encrypted in production)
+  dlAccessToken    String?      // DigiLocker access token
+  dlRefreshToken   String?      // DigiLocker refresh token  
+  dlTokenExpiresAt DateTime?    // Token expiry timestamp
+
+  ckycRefId        String?      // CKYC reference after PAN verification
+  kycType          KycType?     // VALIDATED, REGISTERED, ON_HOLD
+  kraVerified      Boolean      @default(false) // KRA verification status
+
+  fatcaDeclaration Json?        // e.g. JSON of FATCA form answers
   // Relations
   sips             SIP[]
   investments      Investment[]
   payments         Payment[]
+  kycSessions      KycSession[]
 }
-
+model KycSession {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  state           String   @unique  // OAuth state parameter (CSRF protection)
+  codeVerifier    String   // PKCE code verifier
+  
+  status          KycSessionStatus @default(INITIATED)
+  errorCode       String?
+  errorMessage    String?
+  
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime // Session expiry (10 minutes)
+  
+  @@index([userId])
+  @@index([state])
+}
 model SIP {
   id               String   @id @default(cuid())
   userId           String
@@ -106,9 +146,24 @@ model Payment {
 
 
 enum KycStatus {
-  PENDING
-  VERIFIED
-  REJECTED
+  PENDING      
+  IN_PROGRESS  
+  VERIFIED     
+  REJECTED     
+  EXPIRED      
+}
+enum KycType {
+  VALIDATED    // Aadhaar-based KYC (can invest anywhere)
+  REGISTERED   // Non-Aadhaar KYC (limited to existing AMCs)
+  ON_HOLD      // Incomplete/failed KYC
+}
+enum KycSessionStatus {
+  INITIATED       // Session created
+  REDIRECTED      // User redirected to DigiLocker
+  AUTHENTICATED   // User authenticated with DigiLocker
+  COMPLETED       // KYC data fetched successfully
+  FAILED          // KYC failed
+  EXPIRED         // Session expired
 }
 
 enum InvestmentType {
