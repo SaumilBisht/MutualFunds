@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import axios from "axios"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 
 export default function KycPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: session } = useSession()
   const [loading, setLoading] = useState(true)
   const [pan, setPan] = useState("")
@@ -14,12 +15,62 @@ export default function KycPage() {
   const [consentTerms, setConsentTerms] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [panError, setPanError] = useState("")
+  const [statusMessage, setStatusMessage] = useState<{
+    type: 'success' | 'error' | null;
+    text: string;
+  }>({ type: null, text: '' })
 
   const [userInfo, setUserInfo] = useState({
     fullName: "",
     email: "",
     phone: "",
   })
+
+  // Handle redirect from backend (success or error)
+  useEffect(() => {
+    const success = searchParams.get('success')
+    const error = searchParams.get('error')
+    const expectedPan = searchParams.get('expected')
+    const errorMessage = searchParams.get('message')
+
+    if (success === 'true') 
+    {
+      setStatusMessage({
+        type: 'success',
+        text: 'KYC verified successfully! Redirecting to next step...'
+      })
+
+      setTimeout(() => {
+        router.push('/personal')
+      }, 2000)
+    } 
+    else if (error) {
+      const errorMessages: { [key: string]: string } ={
+        'pan_aadhaar_not_linked': 'Your PAN is not linked to Aadhaar. Please link at incometax.gov.in and try again.',
+        'pan_mismatch': expectedPan 
+          ? `PAN mismatch! Your Aadhaar is linked to ${expectedPan}, but you entered a different PAN.`
+          : ' The PAN you entered doesn\'t match the PAN linked to your Aadhaar.',
+        'verification_failed': errorMessage 
+          ? `Verification failed: ${decodeURIComponent(errorMessage)}`
+          : ' KYC verification failed. Please try again.',
+        'session_expired': 'Your session has expired. Please start the verification process again.',
+        'session_already_used': 'This verification session has already been used.',
+        'invalid_session': 'Invalid verification session. Please try again.',
+        'missing_params': 'Invalid callback. Please restart the verification process.',
+        'access_denied': 'You denied access to DigiLocker. Please grant access to complete KYC.',
+      }
+      
+      setStatusMessage({
+        type: 'error',
+        text: errorMessages[error] || 'An error occurred during verification. Please try again.'
+      })
+
+      // Clear URL parameters after showing message
+      setTimeout(() => {
+        window.history.replaceState({}, '', '/kyc')
+      }, 100)
+    }
+  }, [searchParams, router])
 
   useEffect(() => {
     async function checkStatus() {
@@ -118,6 +169,23 @@ export default function KycPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
+        
+        {statusMessage.type && (
+          <div
+            className={`mb-6 p-4 rounded-lg border-2 shadow-md ${
+              statusMessage.type === 'success'
+                ? 'bg-green-50 border-green-500 text-green-900'
+                : 'bg-red-50 border-red-500 text-red-900'
+            }`}
+          >
+            <p className="text-sm font-medium">{statusMessage.text}</p>
+            {statusMessage.type === 'success' && (
+              <p className="text-xs mt-1 text-green-700">
+                Redirecting to the next step...
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
