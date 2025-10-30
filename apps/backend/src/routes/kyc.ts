@@ -12,6 +12,7 @@ import {
   revokeToken,
   encrypt,
   decrypt,
+  convertDigilockerDateToDate,
 } from '../services/digilockerService.js';
 
 //Request extend kri and type bhi add for req.user from verify auth middleware
@@ -220,7 +221,7 @@ router.get('/callback', async (req: Request, res: Response) => {
         country: aadhaarData.address.country,
 
         fullName: aadhaarData.name,
-        dob: aadhaarData.dob ? new Date(aadhaarData.dob) : null,
+        dob: convertDigilockerDateToDate(aadhaarData.dob), // Convert DD-MM-YYYY to Date
         gender: aadhaarData.gender === 'M' ? 'MALE' : aadhaarData.gender === 'F' ? 'FEMALE' : 'OTHER',
         phone: aadhaarData.phone || user.phone,
 
@@ -283,15 +284,22 @@ router.post('/revoke', verifyAuth, async (req: AuthRequest, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { dlAccessToken: true },
+      select: { dlAccessToken: true, dlRefreshToken: true },
     });
 
     if (!user || !user.dlAccessToken) {
       return res.status(400).json({ error: 'No active DigiLocker connection' });
     }
 
-    // Revoke token
-    await revokeToken(user.dlAccessToken);
+    // Decrypt and revoke access token
+    const accessToken = decrypt(user.dlAccessToken);
+    await revokeToken(accessToken, 'access_token');
+    
+    // Also revoke refresh token if available
+    if (user.dlRefreshToken) {
+      const refreshToken = decrypt(user.dlRefreshToken);
+      await revokeToken(refreshToken, 'refresh_token');
+    }
 
     // Clear DigiLocker data (keep KYC status)
     await prisma.user.update({
