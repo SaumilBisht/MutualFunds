@@ -4,6 +4,7 @@ import { authRouter } from "./routes/auth.js";
 import { userRouter } from "./routes/user.js";
 import { signRouter } from "./routes/signature.js";
 import { ekycRouter } from "./routes/ekyc.js";
+import { kycRouter } from "./routes/kyc.js";
 import { nseRouter } from "./routes/nseRoutes.js";
 import mfRoutes from "./routes/mfRoutes.js";
 import paymentRouter from "./routes/payment.js";
@@ -28,6 +29,7 @@ app.use('/auth', authRouter);
 app.use('/user', userRouter);
 app.use('/signature',signRouter);
 app.use("/ekyc", ekycRouter);
+app.use("/kyc", kycRouter);
 app.use('/api/nse',nseRouter)
 app.use("/mf", mfRoutes);
 app.use("/payments", paymentRouter);

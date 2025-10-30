@@ -75,6 +75,9 @@ importers:
       '@types/multer':
         specifier: ^2.0.0
         version: 2.0.0
+      '@types/xml2js':
+        specifier: ^0.4.14
+        version: 0.4.14
       aws-sdk:
         specifier: ^2.1692.0
         version: 2.1692.0
@@ -126,6 +129,9 @@ importers:
       twilio:
         specifier: ^5.10.3
         version: 5.10.3
+      xml2js:
+        specifier: ^0.6.2
+        version: 0.6.2
 
   apps/client:
     dependencies:
@@ -1497,6 +1503,9 @@ packages:
 
   '@types/use-sync-external-store@0.0.6':
     resolution: {integrity: sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==}
+
+  '@types/xml2js@0.4.14':
+    resolution: {integrity: sha512-4YnrRemBShWRO2QjvUin8ESA41rH+9nQGLUGZV/1IDhi3SL9OhdpNC/MrulTWuptXKwhx/aDxE7toV0f/ypIXQ==}
 
   '@typescript-eslint/eslint-plugin@8.40.0':
     resolution: {integrity: sha512-w/EboPlBwnmOBtRbiOvzjD+wdiZdgFeo17lkltrtn7X37vagKKWJABvyfsJXTlHe6XBzugmYgd4A4nW+k8Mixw==}
@@ -5142,6 +5151,10 @@ snapshots:
       '@types/send': 0.17.5
 
   '@types/use-sync-external-store@0.0.6': {}
+
+  '@types/xml2js@0.4.14':
+    dependencies:
+      '@types/node': 24.7.2
 
   '@typescript-eslint/eslint-plugin@8.40.0(@typescript-eslint/parser@8.40.0(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2))(eslint@9.34.0(jiti@2.6.1))(typescript@5.9.2)':
     dependencies:

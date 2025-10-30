@@ -89,15 +89,12 @@ export default function KycPage() {
 
     setSubmitting(true)
     try {
-      // TODO: Call backend endpoint /kyc/redirect
-      // This will initiate DigiLocker OAuth flow
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/kyc/redirect`,
         { pan },
         { withCredentials: true }
       )
       
-      // Backend will return DigiLocker authorization URL
       if (res.data.authUrl) {
         window.location.href = res.data.authUrl
       }
