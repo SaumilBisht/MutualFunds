@@ -14,10 +14,20 @@ router.get("/status", verifyAuth, async (req, res) => {
   try{
     const user = await prisma.user.findUnique({//@ts-ignore
       where: { id: req.user.userId },
-      select: { currentStep: true },
+      select: { 
+        currentStep: true,
+        fullName: true,
+        email: true,
+        phone: true,
+      },
     })
     if (!user) return res.status(404).json({ error: "User not found" })
-    res.json({ currentStep: user.currentStep })
+    res.json({ 
+      currentStep: user.currentStep,
+      fullName: user.fullName || "",
+      email: user.email || "",
+      phone: user.phone || ""
+    })
   }
   catch(e){
     console.log(e);
