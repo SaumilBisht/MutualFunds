@@ -2,26 +2,13 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { parseString } from 'xml2js';
 import { promisify } from 'util';
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import path from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-/**
- * DigiLocker Integration Service
- * 
- * TWO APPROACHES FOR PAN VERIFICATION:
- * 
- * 1. Check Issued Documents (checkPanInDigiLocker):
- *    - GET /oauth2/2/files/issued (list documents already in DigiLocker)
- *    - POST /oauth2/2/files/pull (download specific issued document by URI)
- *    - Use when: User has PAN already added to DigiLocker
- * 
- * 2. Pull from Issuer Repository (checkPanByPullingFromIssuer):
- *    - POST /oauth2/1/pull/pulldocument (search & pull from Income Tax Dept)
- *    - Body: { orgid: "001891", doctype: "PANCR", consent: "Y" }
- *    - Use when: User's PAN may not be in DigiLocker yet (pulls from source)
- * 
- * Choose based on your flow:
- * - Approach 1: Faster, checks existing documents
- * - Approach 2: More thorough, searches issuer repository
- */
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const parseXml = promisify(parseString);
 
@@ -29,7 +16,6 @@ const DIGILOCKER_BASE_URL = process.env.DIGILOCKER_BASE_URL || 'https://dev-meri
 const CLIENT_ID = process.env.DIGILOCKER_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.DIGILOCKER_CLIENT_SECRET || '';
 const REDIRECT_URI = process.env.DIGILOCKER_REDIRECT_URI || 'http://localhost:3000/kyc/callback';
-
 // Generate PKCE code verifier and challenge
 export function generatePKCE() {
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
@@ -56,8 +42,18 @@ export function buildAuthUrl(state: string, codeChallenge: string) {
     Code_challenge: codeChallenge,
     Code_challenge_method: 'S256',
   });
-
-  return `${DIGILOCKER_BASE_URL}/oauth2/1/authorize?${params.toString()}`;
+  
+  const authUrl = `${DIGILOCKER_BASE_URL}/oauth2/1/authorize?${params.toString()}`;
+  
+  // 🔍 Debug logging
+  console.log('📍 [DigiLocker] Generated Auth URL:');
+  console.log('   Full URL:', authUrl);
+  console.log('   Client ID:', CLIENT_ID);
+  console.log('   Redirect URI:', REDIRECT_URI);
+  console.log('   State:', state);
+  console.log('   Code Challenge:', codeChallenge);
+  
+  return authUrl;
 }
 
 // Exchange authorization code for access token
