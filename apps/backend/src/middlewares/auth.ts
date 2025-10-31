@@ -1,11 +1,13 @@
 import jwt from "jsonwebtoken"
 import { Request,Response,NextFunction } from "express"
 export function verifyAuth(req:Request, res:Response, next:NextFunction) {
-  const token = req.cookies.auth_token
+  const token = req.cookies?.auth_token
+  
   if (!token) 
   {
-    console.log("Token Lao");
-    return res.status(401).json({ error: "Not authorized" })
+    console.log("No auth_token cookie found");
+    console.log("Cookies received:", req.cookies);
+    return res.status(401).json({ error: "Not authorized - Please login first" })
   }
 
   try {
@@ -14,6 +16,7 @@ export function verifyAuth(req:Request, res:Response, next:NextFunction) {
     req.user = decoded//userId && email Object
     next()
   } catch (err) {
+    console.log("Invalid token:", err);
     return res.status(403).json({ error: "Invalid or expired token" })
   }
 }

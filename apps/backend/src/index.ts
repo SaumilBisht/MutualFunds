@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import cookieParser from "cookie-parser"
 import { authRouter } from "./routes/auth.js";
 import { userRouter } from "./routes/user.js";
 import { signRouter } from "./routes/signature.js";
@@ -12,6 +13,7 @@ import { scheduleAmfiFetch } from "./services/amfiService.js";
 
 const app=express();
 app.use(express.json());
+app.use(cookieParser()); 
 app.use(
   cors({
     origin: "http://localhost:3001", 
