@@ -71,7 +71,7 @@ export default function SchemeDetails() {
     return (
       <div className="mt-[64px] p-6">
         <p className="text-red-500 mb-4">{error}</p>
-        <Link href="/dashboard" className="text-blue-600 hover:underline">
+        <Link href="/explore" className="text-blue-600 hover:underline">
           ← Back to all schemes
         </Link>
       </div>

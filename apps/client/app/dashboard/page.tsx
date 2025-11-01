@@ -1,26 +1,64 @@
 import { auth } from "@/auth"
-import MfTable from "./components/MfTable"
+import Link from "next/link"
+import Image from "next/image"
+import { TopFundsSection } from "@/components/TopFundsSection"
 
 export default async function Dashboard() {
-
   const session = await auth()
   const user = session?.user
 
   return (
-    <main className="mt-[64px] py-2 px-6">
-      <h1 className="text-2xl font-semibold mb-4">Available Mutual Funds</h1>
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
 
-      <div className="border p-4 mb-6 rounded-lg shadow">
-        <MfTable />
-      </div>
+      <section className="relative h-[50vh] mt-[10px] px-6 flex items-center">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
 
-      {user ? (
-        <p className="text-gray-700">Logged in as {user.name}</p>
-      ) : (
-        <p className="text-gray-500">
-          You’re browsing as a guest. Sign in to continue your KYC and SIP setup.
-        </p>
-      )}
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900">
+                Explore the World of{" "}
+                <span className="relative inline-block">
+                  <span className="relative z-10 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Mutual Funds
+                  </span>
+                  <span className="absolute -inset-1 bg-gradient-to-r from-blue-200 to-purple-200 blur-lg opacity-30 rounded-lg"></span>
+                </span>
+              </h1>
+
+              <p className="text-xl text-gray-600 leading-relaxed m-1">
+                Your Gateway to Financial freedom
+              </p>
+              <p className="text-lg text-gray-600 leading-relaxed pl-1">
+                Join the Journey and Reap the Rewards
+              </p>
+
+              <Link href="/explore" className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl">
+                Discover all funds
+              </Link>
+            </div>
+
+            <div className="relative h-64 lg:h-80">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-[400px] h-[400px] overflow-hidden">
+                  <Image
+                    src="/lib/manImage.png"
+                    alt="Mutual Funds Investment"
+                    
+                    width={250}
+                    height={600}
+                    className="drop-shadow-2xl"
+                    priority
+                  />
+                  <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-2xl"></div>
+                  <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <TopFundsSection />
     </main>
   )
 }
