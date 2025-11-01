@@ -1,7 +1,8 @@
 import express, { Router } from "express";
 import { getAmfiCached } from "../services/amfiService.js";
-import { getSchemeEnrichment, getSchemeLogo } from "../services/schemeData.js";
 import { getNavHistory } from "../services/navHistoryService.js";
+import { getSchemeEnrichment } from "../services/schemeData.js";
+import { filterByCategory, getCategoryStats } from "../services/fundCategories.js";
 
 const mfRouter:Router = express.Router();
 
@@ -108,78 +109,42 @@ mfRouter.get("/nav-history/:code", async (req, res, next) => {
   }
 });
 
-// Get funds by category
+// Get funds by category (using comprehensive classification system)
 mfRouter.get("/category/:categoryType", async (req, res, next) => {
   try {
     const categoryType = String(req.params.categoryType).toLowerCase();
-    const subcategory = String(req.query.subcategory || "").toLowerCase();
+    const subcategory = String(req.query.subcategory || "").toLowerCase().replace(/ /g, '-');
     const limit = Math.min(200, Number(req.query.limit || 50));
     
-    const amfi = await getAmfiCached();
-    const list = amfi.list || [];
+    console.log(`[mfRoutes] Category request: ${categoryType}, subcategory: ${subcategory || 'all'}`);
     
-    let filtered = list.filter((scheme: any) => {
-      const schemeName = scheme.schemeName.toLowerCase();
-      
-      // Category-based filtering
-      switch (categoryType) {
-        case "equity":
-          // Must not be debt/hybrid/index
-          if (schemeName.includes("debt") || schemeName.includes("bond") || 
-              schemeName.includes("liquid") || schemeName.includes("income") ||
-              schemeName.includes("hybrid") || schemeName.includes("balanced") ||
-              schemeName.includes("index") || schemeName.includes("etf")) {
-            return false;
-          }
-          
-          // Subcategory filtering for equity
-          if (subcategory) {
-            if (subcategory === "large-cap" || subcategory === "large cap") {
-              return schemeName.includes("large cap") || schemeName.includes("bluechip");
-            }
-            if (subcategory === "mid-cap" || subcategory === "mid cap") {
-              return schemeName.includes("mid cap") || schemeName.includes("midcap");
-            }
-            if (subcategory === "small-cap" || subcategory === "small cap") {
-              return schemeName.includes("small cap") || schemeName.includes("smallcap");
-            }
-            if (subcategory === "multi-cap" || subcategory === "multi cap") {
-              return schemeName.includes("multi cap") || schemeName.includes("multicap") || 
-                     schemeName.includes("flexi cap") || schemeName.includes("flexicap");
-            }
-          }
-          
-          // General equity funds
-          return schemeName.includes("equity") || schemeName.includes("stock") ||
-                 schemeName.includes("growth") || schemeName.includes("focused") ||
-                 schemeName.includes("elss") || schemeName.includes("cap");
-          
-        case "debt":
-          return schemeName.includes("debt") || schemeName.includes("bond") ||
-                 schemeName.includes("liquid") || schemeName.includes("income") ||
-                 schemeName.includes("credit") || schemeName.includes("gilt") ||
-                 schemeName.includes("treasury") || schemeName.includes("money market");
-          
-        case "hybrid":
-          return schemeName.includes("hybrid") || schemeName.includes("balanced") ||
-                 schemeName.includes("arbitrage") || schemeName.includes("asset allocation");
-          
-        case "index":
-          return schemeName.includes("index") || schemeName.includes("etf") ||
-                 schemeName.includes("nifty") || schemeName.includes("sensex");
-          
-        default:
-          return false;
-      }
-    });
+    // Get all schemes
+    const amfi = await getAmfiCached();
+    const allSchemes = amfi.list || [];
+    
+    // Use the comprehensive classification system
+    const filtered = filterByCategory(
+      allSchemes,
+      categoryType,
+      subcategory || undefined
+    );
     
     // Add enrichment data (logos)
     const enriched = filtered.map((scheme: any) => ({
-      ...scheme,
+      schemeCode: scheme.schemeCode,
+      schemeName: scheme.schemeName,
+      netAssetValue: scheme.netAssetValue,
+      date: scheme.date,
+      category: scheme.classification.category,
+      subcategory: scheme.classification.subcategory,
+      confidence: scheme.classification.confidence,
       enrichment: getSchemeEnrichment(scheme.schemeName)
     }));
     
+    // Apply limit
     const output = enriched.slice(0, limit);
+    
+    console.log(`[mfRoutes] Found ${enriched.length} funds in ${categoryType}${subcategory ? `/${subcategory}` : ''}, returning ${output.length}`);
     
     res.json({ 
       success: true, 
@@ -193,6 +158,35 @@ mfRouter.get("/category/:categoryType", async (req, res, next) => {
     });
   } catch (err) {
     console.error("[mfRoutes] Error in /category/:categoryType:", err);
+    next(err);
+  }
+});
+
+// Get category statistics (fund counts per category/subcategory)
+mfRouter.get("/category-stats", async (req, res, next) => {
+  try {
+    console.log("[mfRoutes] Category stats request");
+    
+    // Get all schemes
+    const amfi = await getAmfiCached();
+    const allSchemes = amfi.list || [];
+    
+    // Get statistics using the classification system
+    const stats = getCategoryStats(allSchemes);
+    
+    console.log(`[mfRoutes] Category stats generated:`, {
+      equity: stats.equity?.total || 0,
+      debt: stats.debt?.total || 0,
+      hybrid: stats.hybrid?.total || 0,
+      index: stats.index?.total || 0
+    });
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (err) {
+    console.error("[mfRoutes] Error in /category-stats:", err);
     next(err);
   }
 });
