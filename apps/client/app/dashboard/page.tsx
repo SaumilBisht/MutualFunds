@@ -10,12 +10,12 @@ export default async function Dashboard() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
 
-      <section className="relative h-[50vh] mt-[10px] px-6 flex items-center">
+      <section className="relative min-h-[50vh] mt-[54px] px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 flex items-center">
         <div className="max-w-7xl mx-auto w-full">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900">
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-gray-900">
                 Explore the World of{" "}
                 <span className="relative inline-block">
                   <span className="relative z-10 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -25,32 +25,36 @@ export default async function Dashboard() {
                 </span>
               </h1>
 
-              <p className="text-xl text-gray-600 leading-relaxed m-1">
-                Your Gateway to Financial freedom
-              </p>
-              <p className="text-lg text-gray-600 leading-relaxed pl-1">
-                Join the Journey and Reap the Rewards
-              </p>
+              <div className="space-y-2">
+                <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
+                  Your Gateway to Financial freedom
+                </p>
+                <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
+                  Join the Journey and Reap the Rewards
+                </p>
+              </div>
 
-              <Link href="/explore" className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl">
+              <Link 
+                href="/explore" 
+                className="inline-block px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
+              >
                 Discover all funds
               </Link>
             </div>
 
-            <div className="relative h-64 lg:h-80">
+            <div className="relative h-64 sm:h-72 lg:h-80 hidden lg:block">
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-[400px] h-[400px] overflow-hidden">
+                <div className="relative w-[300px] sm:w-[350px] lg:w-[400px] h-[300px] sm:h-[350px] lg:h-[400px] overflow-hidden">
                   <Image
                     src="/lib/manImage.png"
                     alt="Mutual Funds Investment"
-                    
                     width={250}
                     height={600}
                     className="drop-shadow-2xl"
                     priority
                   />
-                  <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-2xl"></div>
-                  <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"></div>
+                  <div className="absolute -top-8 -right-8 w-24 sm:w-32 h-24 sm:h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-2xl"></div>
+                  <div className="absolute -bottom-8 -left-8 w-24 sm:w-32 h-24 sm:h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"></div>
                 </div>
               </div>
             </div>
