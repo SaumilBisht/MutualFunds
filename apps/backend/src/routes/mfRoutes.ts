@@ -44,13 +44,39 @@ mfRouter.post("/schemes/:code", async (req, res, next) => {
 
 mfRouter.get("/search", async (req, res, next) => {
   try {
-    const q = String(req.query.q || "").toLowerCase();
+    const q = String(req.query.q || "").toLowerCase().trim();
     const limit = Math.min(200, Number(req.query.limit || 50));
     if (!q) return res.status(400).json({ success: false, error: "q required" });
+    
     const amfi = await getAmfiCached();
     const list = amfi.list || [];
+    
+    // Split query into words for partial matching (split on space, &, -, and other separators)
+    const queryWords = q.split(/[\s&\-,]+/).filter(word => word.length > 1);
+    
     const out = list.filter((r:any) => {
-      return r.schemeName.toLowerCase().includes(q) || (r.schemeCode || "").toLowerCase().includes(q);
+      const schemeName = r.schemeName.toLowerCase();
+      const schemeCode = (r.schemeCode || "").toLowerCase();
+      
+      // Check if scheme code matches
+      if (schemeCode.includes(q)) return true;
+      
+      // Split scheme name into words for better matching
+      const schemeWords = schemeName.split(/[\s&\-,()]+/).filter((word: string) => word.length > 1);
+      
+      // Check if all query words are present in scheme name (flexible matching - any position)
+      const allWordsMatch = queryWords.every(queryWord => 
+        schemeWords.some((schemeWord: string) => schemeWord.includes(queryWord))
+      );
+      
+      if (allWordsMatch) return true;
+      
+      // Alternative: check if query words appear anywhere in scheme name (simpler fallback)
+      const simpleMatch = queryWords.every(word => schemeName.includes(word));
+      if (simpleMatch) return true;
+      
+      // Final fallback: check if original query is in scheme name
+      return schemeName.includes(q);
     }).slice(0, limit);
 
     res.json({ success: true, meta: { total: out.length }, data: out });

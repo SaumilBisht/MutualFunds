@@ -91,7 +91,7 @@ export default function SchemeDetails() {
 
   return (
     <main className="mt-[18px] py-6 px-8 max-w-7xl mx-auto">
-      <Link href="/dashboard" className="text-blue-600 hover:underline inline-block mb-6">
+      <Link href="/explore" className="text-blue-600 hover:underline inline-block mb-6">
         ← Back to all schemes
       </Link>
 

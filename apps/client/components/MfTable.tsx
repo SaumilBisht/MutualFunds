@@ -1,7 +1,6 @@
 "use client"
 import axios from "axios"
 import { useEffect, useState } from "react"
-import MfSearch from "./MfSearch"
 import Link from "next/link"
 
 interface Scheme {
@@ -40,7 +39,6 @@ export default function MfTable() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <MfSearch setSchemes={setSchemes} setTotal={setTotal} />
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
