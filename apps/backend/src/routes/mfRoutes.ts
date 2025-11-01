@@ -108,4 +108,93 @@ mfRouter.get("/nav-history/:code", async (req, res, next) => {
   }
 });
 
+// Get funds by category
+mfRouter.get("/category/:categoryType", async (req, res, next) => {
+  try {
+    const categoryType = String(req.params.categoryType).toLowerCase();
+    const subcategory = String(req.query.subcategory || "").toLowerCase();
+    const limit = Math.min(200, Number(req.query.limit || 50));
+    
+    const amfi = await getAmfiCached();
+    const list = amfi.list || [];
+    
+    let filtered = list.filter((scheme: any) => {
+      const schemeName = scheme.schemeName.toLowerCase();
+      
+      // Category-based filtering
+      switch (categoryType) {
+        case "equity":
+          // Must not be debt/hybrid/index
+          if (schemeName.includes("debt") || schemeName.includes("bond") || 
+              schemeName.includes("liquid") || schemeName.includes("income") ||
+              schemeName.includes("hybrid") || schemeName.includes("balanced") ||
+              schemeName.includes("index") || schemeName.includes("etf")) {
+            return false;
+          }
+          
+          // Subcategory filtering for equity
+          if (subcategory) {
+            if (subcategory === "large-cap" || subcategory === "large cap") {
+              return schemeName.includes("large cap") || schemeName.includes("bluechip");
+            }
+            if (subcategory === "mid-cap" || subcategory === "mid cap") {
+              return schemeName.includes("mid cap") || schemeName.includes("midcap");
+            }
+            if (subcategory === "small-cap" || subcategory === "small cap") {
+              return schemeName.includes("small cap") || schemeName.includes("smallcap");
+            }
+            if (subcategory === "multi-cap" || subcategory === "multi cap") {
+              return schemeName.includes("multi cap") || schemeName.includes("multicap") || 
+                     schemeName.includes("flexi cap") || schemeName.includes("flexicap");
+            }
+          }
+          
+          // General equity funds
+          return schemeName.includes("equity") || schemeName.includes("stock") ||
+                 schemeName.includes("growth") || schemeName.includes("focused") ||
+                 schemeName.includes("elss") || schemeName.includes("cap");
+          
+        case "debt":
+          return schemeName.includes("debt") || schemeName.includes("bond") ||
+                 schemeName.includes("liquid") || schemeName.includes("income") ||
+                 schemeName.includes("credit") || schemeName.includes("gilt") ||
+                 schemeName.includes("treasury") || schemeName.includes("money market");
+          
+        case "hybrid":
+          return schemeName.includes("hybrid") || schemeName.includes("balanced") ||
+                 schemeName.includes("arbitrage") || schemeName.includes("asset allocation");
+          
+        case "index":
+          return schemeName.includes("index") || schemeName.includes("etf") ||
+                 schemeName.includes("nifty") || schemeName.includes("sensex");
+          
+        default:
+          return false;
+      }
+    });
+    
+    // Add enrichment data (logos)
+    const enriched = filtered.map((scheme: any) => ({
+      ...scheme,
+      enrichment: getSchemeEnrichment(scheme.schemeName)
+    }));
+    
+    const output = enriched.slice(0, limit);
+    
+    res.json({ 
+      success: true, 
+      meta: { 
+        total: enriched.length, 
+        showing: output.length,
+        category: categoryType,
+        subcategory: subcategory || null
+      }, 
+      data: output 
+    });
+  } catch (err) {
+    console.error("[mfRoutes] Error in /category/:categoryType:", err);
+    next(err);
+  }
+});
+
 export default mfRouter;
