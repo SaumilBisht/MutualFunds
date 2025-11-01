@@ -3,9 +3,9 @@ import { useParams } from "next/navigation"
 import axios from "axios"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { NavChart } from "./components/NavChart"
-import { SipCalculator } from "./components/SipCalculator"
-import { InvestNow } from "./components/InvestNow"
+import { NavChart } from "../../../components/NavChart"
+import { SipCalculator } from "../../../components/SipCalculator"
+import { InvestNow } from "../../../components/InvestNow"
 
 interface Scheme {
   schemeCode: string

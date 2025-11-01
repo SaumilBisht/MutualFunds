@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import MfTable from "../dashboard/components/MfTable"
+import MfTable from "../../components/MfTable"
 import Link from "next/link"
 
 export default async function ExplorePage() {
