@@ -67,7 +67,8 @@ export default function BankDetails() {
     setFetchingIfsc(true)
     try {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/bank/ifsc/${ifsc}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/bank/ifsc/${ifsc}`,
+        { withCredentials: true }
       )
       const bankData: BankData = res.data.data
 
@@ -107,7 +108,8 @@ export default function BankDetails() {
     try {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/bank/verify`,
-        formData
+        formData,
+        { withCredentials: true }
       )
 
       if (res.data.success) {
