@@ -64,7 +64,8 @@ export function calculateNameMatchScore(name1: string, name2: string): number {
 export async function verifyBankAccountWithPennyDrop(
   accountNumber: string,
   ifscCode: string,
-  accountHolderName: string
+  accountHolderName: string,
+  existingFundAccountId?: string // Optional: if you already have a fund account ID
 ): Promise<{
   success: boolean;
   verified: boolean;
@@ -86,52 +87,106 @@ export async function verifyBankAccountWithPennyDrop(
       };
     }
 
-    // RazorpayX Fund Account Validation API
-    const authHeader = `Basic ${Buffer.from(
-      `${razorpayKeyId}:${razorpayKeySecret}`
-    ).toString("base64")}`;
-
-    const payload = {
-      account_number: accountNumber,
-      ifsc: ifscCode.toUpperCase(),
-      fund_account: {
-        account_type: "bank_account",
-        bank_account: {
-          name: accountHolderName,
-          ifsc: ifscCode.toUpperCase(),
-          account_number: accountNumber,
-        },
-      },
+    const auth = {
+      username: razorpayKeyId,
+      password: razorpayKeySecret
     };
 
     console.log("Initiating penny drop verification for account:", `***${accountNumber.slice(-4)}`);
 
-    const response = await axios.post(
-      "https://api.razorpay.com/v1/fund_accounts/validate",
-      payload,
-      {
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
+    let fundAccountId: string;
+    let bankName = "";
+
+    // Check if fund account ID is provided or in env variable
+    const envFundAccountId = process.env.RAZORPAYX_FUND_ACCOUNT_ID;
+    
+    if (existingFundAccountId) {
+      fundAccountId = existingFundAccountId;
+      console.log(`Using provided fund account: ${fundAccountId}`);
+    } else if (envFundAccountId) {
+      fundAccountId = envFundAccountId;
+      console.log(`Using fund account from env: ${fundAccountId}`);
+    } else {
+      // Step 1: Create a contact
+      const contactResponse = await axios.post(
+        "https://api.razorpay.com/v1/contacts",
+        {
+          name: accountHolderName,
+          type: "customer",
+          reference_id: `contact_${Date.now()}`,
+          notes: {
+            purpose: "bank_verification"
+          }
         },
-        timeout: 30000, // 30 seconds timeout
+        {
+          auth,
+          headers: { "Content-Type": "application/json" },
+          timeout: 15000
+        }
+      );
+
+      const contactId = contactResponse.data.id;
+      console.log(`Created contact: ${contactId}`);
+
+      // Step 2: Create fund account
+      const fundAccountResponse = await axios.post(
+        "https://api.razorpay.com/v1/fund_accounts",
+        {
+          contact_id: contactId,
+          account_type: "bank_account",
+          bank_account: {
+            name: accountHolderName,
+            ifsc: ifscCode.toUpperCase(),
+            account_number: accountNumber
+          }
+        },
+        {
+          auth,
+          headers: { "Content-Type": "application/json" },
+          timeout: 15000
+        }
+      );
+
+      fundAccountId = fundAccountResponse.data.id;
+      bankName = fundAccountResponse.data.bank_account?.bank_name || "";
+      console.log(`Created fund account: ${fundAccountId}, Bank: ${bankName}`);
+    }
+
+    // Step 3: Validate fund account (Penny Drop)
+    const validationResponse = await axios.post(
+      "https://api.razorpay.com/v1/fund_accounts/validations",
+      {
+        fund_account: {
+          id: fundAccountId
+        },
+        notes: {
+          purpose: "bank_account_verification"
+        }
+      },
+      {
+        auth,
+        headers: { "Content-Type": "application/json" },
+        timeout: 30000
       }
     );
 
-    const data = response.data;
-
+    const data = validationResponse.data;
     console.log("Penny drop response status:", data.status);
 
-    if (data.status === "completed" && data.results?.account_status === "active") {
-      const beneficiaryName = data.results.registered_name || "";
+    // Check validation results
+    const results = data.results || {};
+    const accountStatus = results.account_status || "";
+    const beneficiaryName = results.registered_name || accountHolderName;
+
+    if (accountStatus.toLowerCase() === "active") {
       const nameMatchScore = calculateNameMatchScore(accountHolderName, beneficiaryName);
 
       console.log(`Name match score: ${nameMatchScore}% (User: "${accountHolderName}", Bank: "${beneficiaryName}")`);
 
       return {
         success: true,
-        verified: nameMatchScore >= 80, // Accept if 80% or higher match
-        bankName: data.fund_account?.bank_account?.bank_name || "",
+        verified: nameMatchScore >= 80,
+        bankName: bankName,
         beneficiaryName: beneficiaryName,
         nameMatchScore: nameMatchScore,
       };
@@ -139,7 +194,7 @@ export async function verifyBankAccountWithPennyDrop(
       return {
         success: false,
         verified: false,
-        error: data.results?.error?.description || "Bank account verification failed",
+        error: results.error?.description || "Bank account verification failed",
       };
     } else {
       return {
@@ -149,7 +204,11 @@ export async function verifyBankAccountWithPennyDrop(
       };
     }
   } catch (error: any) {
-    console.error("Penny drop verification error:", error.response?.data || error.message);
+    console.error("Penny drop verification error:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
 
     if (error.response?.status === 401) {
       return {
