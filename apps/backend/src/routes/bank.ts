@@ -104,7 +104,8 @@ bankRouter.post("/verify", verifyAuth,async (req: Request, res: Response) => {
             bankVerified: true,
             bankVerifiedAt: new Date(),
             bankBeneficiaryName: pennyDropResult.beneficiaryName,
-            bankNameMatchScore: pennyDropResult.nameMatchScore
+            bankNameMatchScore: pennyDropResult.nameMatchScore,
+            currentStep: 6  // Move to signature page
           }
         });
 

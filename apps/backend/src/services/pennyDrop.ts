@@ -170,8 +170,51 @@ export async function verifyBankAccountWithPennyDrop(
       }
     );
 
-    const data = validationResponse.data;
-    console.log("Penny drop response status:", data.status);
+    let data = validationResponse.data;
+    const validationId = data.id;
+    console.log("Penny drop response status:", data.status, "ID:", validationId);
+
+    // If status is 'created', poll for completion
+    if (data.status === "created") {
+      console.log("Validation in progress, polling for completion...");
+      
+      let attempts = 0;
+      const maxAttempts = 20; // Poll for up to 40 seconds (20 attempts * 2 seconds)
+      
+      while (attempts < maxAttempts && data.status === "created") {
+        // Wait 2 seconds before checking again
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        attempts++;
+        
+        console.log(`Polling attempt ${attempts}/${maxAttempts}...`);
+        
+        // Fetch validation status
+        const statusResponse = await axios.get(
+          `https://api.razorpay.com/v1/fund_accounts/validations/${validationId}`,
+          {
+            auth,
+            timeout: 10000
+          }
+        );
+        
+        data = statusResponse.data;
+        console.log(`Status: ${data.status}`);
+        
+        if (data.status === "completed" || data.status === "failed") {
+          break;
+        }
+      }
+      
+      if (data.status === "created") {
+        return {
+          success: false,
+          verified: false,
+          error: "Verification is taking longer than expected. Please try again in a few minutes.",
+        };
+      }
+    }
+
+    console.log("Final penny drop status:", data.status);
 
     // Check validation results
     const results = data.results || {};
