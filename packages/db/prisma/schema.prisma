@@ -16,6 +16,16 @@ model User {
   encryptedPan     String?
   encryptedBankAcc String?
   encryptedIfsc    String?
+
+  bankAccountType  String?     // savings or current
+  bankName         String?     // Bank name from penny drop
+  bankBranchName   String?     // Branch name
+  bankAccountHolderName String? // Account holder name
+  bankVerified     Boolean     @default(false)  // Whether bank was verified via penny drop
+  bankVerifiedAt   DateTime?   // Timestamp of bank verification
+  bankBeneficiaryName String?  // Name returned by bank
+  bankNameMatchScore Int?      // Fuzzy match score (0-100)
+  
   upiId            String?      // UPI ID (if provided)
   dob              DateTime?    // Date of Birth
   maritalStatus    MaritalStatus?      // e.g. "Single", "Married"
