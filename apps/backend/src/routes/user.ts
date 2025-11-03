@@ -33,7 +33,7 @@ router.get("/status", verifyAuth, async (req, res) => {
     console.log(e);
   }
 })
-router.post("/personal", verifyAuth,async (req, res) => {
+router.post("/personal", verifyAuth, async (req, res) => {
   //@ts-ignore
   const userId = req.user?.userId;
 
@@ -44,22 +44,56 @@ router.post("/personal", verifyAuth,async (req, res) => {
 
   const data = parsed.data;
 
-  try 
-  {
+  try {
+    // Base personal info that's always required
+    const updateData: any = {
+      fatherName: data.fatherName,
+      motherName: data.motherName,
+      maritalStatus: data.maritalStatus,
+      education: data.education,
+      gender: data.gender,
+      residentialStatus: data.residentialStatus,
+      occupationType: data.occupationType,
+      countryOfBirth: data.countryOfBirth,
+      nationality: data.nationality,
+      currentStep: { increment: 1 },
+    };
+
+    // Only add nominee data if user selected "Yes" and provided nominee info
+    if (data.nomineeName && data.nomineeRelation) {
+      updateData.nomineeName = data.nomineeName;
+      updateData.nomineeRelation = data.nomineeRelation;
+      updateData.nomineeAllocation = data.nomineeAllocation;
+      updateData.nomineeIdType = data.nomineeIdType;
+      updateData.nomineeIdNumber = data.nomineeIdNumber;
+      updateData.nomineeEmail = data.nomineeEmail || null;
+      updateData.nomineeMobile = data.nomineeMobile || null;
+      updateData.nomineeAddressLine1 = data.nomineeAddressLine1;
+      updateData.nomineeAddressLine2 = data.nomineeAddressLine2 || null;
+      updateData.nomineeCity = data.nomineeCity;
+      updateData.nomineePincode = data.nomineePincode;
+      updateData.nomineeCountry = data.nomineeCountry || "India";
+      updateData.nomineeDob = data.nomineeDob ? new Date(data.nomineeDob) : null;
+    } else {
+      // User selected "No" - explicitly set nominee fields to null
+      updateData.nomineeName = null;
+      updateData.nomineeRelation = null;
+      updateData.nomineeAllocation = null;
+      updateData.nomineeIdType = null;
+      updateData.nomineeIdNumber = null;
+      updateData.nomineeEmail = null;
+      updateData.nomineeMobile = null;
+      updateData.nomineeAddressLine1 = null;
+      updateData.nomineeAddressLine2 = null;
+      updateData.nomineeCity = null;
+      updateData.nomineePincode = null;
+      updateData.nomineeCountry = null;
+      updateData.nomineeDob = null;
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: {
-        fatherName: data.fatherName,
-        motherName: data.motherName,
-        maritalStatus: data.maritalStatus,
-        education: data.education,
-        gender: data.gender,
-        residentialStatus: data.residentialStatus,
-        occupationType: data.occupationType,
-        countryOfBirth: data.countryOfBirth,
-        nationality: data.nationality,
-        currentStep: { increment: 1 },
-      },
+      data: updateData,
     });
 
     res.json({ success: true, user: updatedUser });

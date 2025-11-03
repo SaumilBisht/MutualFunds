@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from "express";
 import axios from "axios";
-import { verifyAuth } from "../middlewares/auth";
+import { verifyAuth } from "../middlewares/auth.js";
 
 const bankRouter: Router = express.Router();
 

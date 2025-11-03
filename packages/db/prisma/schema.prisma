@@ -33,8 +33,21 @@ model User {
 
   signatureUrl   String?      // S3 URL of signature image
 
-  nomineeName      String?
-  nomineeRelation  String?
+
+  nomineeName         String?
+  nomineeRelation     String?      // SPOUSE, CHILD, FATHER, MOTHER, OTHER
+  nomineeAllocation   Float?       // Percentage allocation (0-100)
+  nomineeIdType       String?      // PAN, AADHAAR, DRIVING_LICENCE, PASSPORT
+  nomineeIdNumber     String?      // Full PAN or last 4 of Aadhaar or full DL/Passport
+  nomineeEmail        String?
+  nomineeMobile       String?
+  nomineeAddressLine1 String?
+  nomineeAddressLine2 String?
+  nomineeCity         String?
+  nomineePincode      String?
+  nomineeCountry      String?
+  nomineeDob          DateTime?
+  
   languagePref     String?      // "en" or "hi"
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt

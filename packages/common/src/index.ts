@@ -29,6 +29,23 @@ export const personalInfoSchema = z.object({
   ]),
   countryOfBirth: z.string().optional(),
   nationality: z.string().optional(),
+  // Optional Nominee Details (all fields optional)
+  nomineeName: z.string().optional(),
+  nomineeRelation: z.enum(["SPOUSE", "CHILD", "FATHER", "MOTHER", "OTHER"]).optional(),
+  nomineeAllocation: z.number().min(1).max(100, "Allocation must be between 1-100%").optional(),
+  nomineeIdType: z.enum(["PAN", "AADHAAR", "DRIVING_LICENCE", "PASSPORT"]).optional(),
+  nomineeIdNumber: z.string().optional(),
+  nomineeEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
+  nomineeMobile: z.string().regex(/^\d{10}$/, "Invalid mobile number").optional().or(z.literal("")),
+  nomineeAddressLine1: z.string().optional(),
+  nomineeAddressLine2: z.string().optional(),
+  nomineeCity: z.string().optional(),
+  nomineePincode: z.string().regex(/^\d{6}$/, "Invalid PIN code").optional().or(z.literal("")),
+  nomineeCountry: z.string().optional(),
+  nomineeDob: z.string().refine(val => {
+    if (!val) return true; // Allow empty
+    return /^\d{4}-\d{2}-\d{2}$/.test(val);
+  }, "Date of Birth must be in YYYY-MM-DD format").optional(),
 });
 
 export const financialInfoSchema = z.object({
