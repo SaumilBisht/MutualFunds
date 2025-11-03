@@ -1,6 +1,8 @@
 import express, { Router, Request, Response } from "express";
 import axios from "axios";
 import { verifyAuth } from "../middlewares/auth.js";
+import { verifyBankAccountWithPennyDrop } from "../services/pennyDrop.js";
+import { prisma } from "db/client";
 
 const bankRouter: Router = express.Router();
 
@@ -57,27 +59,75 @@ bankRouter.post("/verify", verifyAuth,async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Verify with Penny Drop API or Bank Account Verification API
+    //@ts-ignore
+    console.log(`Starting penny drop verification for user ${req.user?.userId}`);
+    
+    const pennyDropResult = await verifyBankAccountWithPennyDrop(
+      accountNumber,
+      ifscCode,
+      accountHolderName
+    );
 
-    //in production, integrate with actual verification API
-    const verificationResult = {
-      verified: true,
-      nameMatch: true, // Compare with PAN name
-      accountActive: true
-    };
-    // TODO: Save to database with user ID
+    if (!pennyDropResult.success) {
+      return res.status(400).json({
+        success: false,
+        error: pennyDropResult.error || "Bank verification failed"
+      });
+    }
+
+    if (!pennyDropResult.verified) {
+      return res.status(400).json({
+        success: false,
+        error: `Name verification failed. Bank name: "${pennyDropResult.beneficiaryName}". Match score: ${pennyDropResult.nameMatchScore}% (minimum 80% required)`,
+        data: {
+          bankName: pennyDropResult.beneficiaryName,
+          matchScore: pennyDropResult.nameMatchScore
+        }
+      });
+    }
+
+    // Save verified bank details to database
+    try {
+      //@ts-ignore
+      const userId = req.user?.userId;
+      
+      if (userId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            encryptedBankAcc: accountNumber, // TODO: Encrypt in production
+            encryptedIfsc: ifscCode.toUpperCase(), // TODO: Encrypt in production
+            bankAccountType: accountType.toLowerCase(),
+            bankAccountHolderName: accountHolderName,
+            bankName: pennyDropResult.bankName || bankName,
+            bankBranchName: branchName,
+            bankVerified: true,
+            bankVerifiedAt: new Date(),
+            bankBeneficiaryName: pennyDropResult.beneficiaryName,
+            bankNameMatchScore: pennyDropResult.nameMatchScore
+          }
+        });
+
+        console.log(`Bank details saved for user ${userId}. Match score: ${pennyDropResult.nameMatchScore}%`);
+      }
+    } catch (dbError: any) {
+      console.error("Error saving bank details to database:", dbError.message);
+      // Continue even if DB save fails - verification was successful
+    }
 
     res.json({
       success: true,
       message: "Bank details verified successfully",
       data: {
-        verified: verificationResult.verified,
+        verified: true,
         accountNumber: `***${accountNumber.slice(-4)}`,
         ifscCode: ifscCode.toUpperCase(),
         accountType,
         accountHolderName,
-        bankName,
-        branchName
+        bankName: pennyDropResult.bankName || bankName,
+        branchName,
+        beneficiaryName: pennyDropResult.beneficiaryName,
+        nameMatchScore: pennyDropResult.nameMatchScore
       }
     });
 
