@@ -107,7 +107,7 @@ export async function verifyBankAccountWithPennyDrop(
     console.log("Initiating penny drop verification for account:", `***${accountNumber.slice(-4)}`);
 
     const response = await axios.post(
-      "https://api.razorpay.com/v1/fund_accounts/validations",
+      "https://api.razorpay.com/v1/fund_accounts/validate",
       payload,
       {
         headers: {
