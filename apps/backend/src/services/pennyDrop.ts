@@ -77,6 +77,8 @@ export async function verifyBankAccountWithPennyDrop(
   try {
     const razorpayKeyId = process.env.RAZORPAYX_KEY_ID;
     const razorpayKeySecret = process.env.RAZORPAYX_KEY_SECRET;
+    const sourceAccountNumber = process.env.RAZORPAYX_ACCOUNT_NUMBER;
+    const envFundAccountId = process.env.RAZORPAYX_FUND_ACCOUNT_ID;
 
     if (!razorpayKeyId || !razorpayKeySecret) {
       console.error("RazorpayX credentials not configured");
@@ -87,78 +89,75 @@ export async function verifyBankAccountWithPennyDrop(
       };
     }
 
+    if (!sourceAccountNumber) {
+      console.error("RazorpayX source account number not configured");
+      return {
+        success: false,
+        verified: false,
+        error: "RazorpayX account number not configured. Please contact support.",
+      };
+    }
+
     const auth = {
       username: razorpayKeyId,
       password: razorpayKeySecret
     };
 
-    console.log("Initiating penny drop verification for account:", `***${accountNumber.slice(-4)}`);
+    console.log(`Initiating penny drop verification for account: ***${accountNumber.slice(-4)}`);
 
-    let fundAccountId: string;
-    let bankName = "";
+    // Use existing fund account ID (from parameter or env)
+    const fundAccountId = existingFundAccountId || envFundAccountId;
 
-    // Check if fund account ID is provided or in env variable
-    const envFundAccountId = process.env.RAZORPAYX_FUND_ACCOUNT_ID;
-    
-    if (existingFundAccountId) {
-      fundAccountId = existingFundAccountId;
-      console.log(`Using provided fund account: ${fundAccountId}`);
-    } else if (envFundAccountId) {
-      fundAccountId = envFundAccountId;
-      console.log(`Using fund account from env: ${fundAccountId}`);
-    } else {
-      // Step 1: Create a contact
-      const contactResponse = await axios.post(
-        "https://api.razorpay.com/v1/contacts",
-        {
-          name: accountHolderName,
-          type: "customer",
-          reference_id: `contact_${Date.now()}`,
-          notes: {
-            purpose: "bank_verification"
-          }
-        },
-        {
-          auth,
-          headers: { "Content-Type": "application/json" },
-          timeout: 15000
-        }
-      );
-
-      const contactId = contactResponse.data.id;
-      console.log(`Created contact: ${contactId}`);
-
-      // Step 2: Create fund account
-      const fundAccountResponse = await axios.post(
-        "https://api.razorpay.com/v1/fund_accounts",
-        {
-          contact_id: contactId,
-          account_type: "bank_account",
-          bank_account: {
-            name: accountHolderName,
-            ifsc: ifscCode.toUpperCase(),
-            account_number: accountNumber
-          }
-        },
-        {
-          auth,
-          headers: { "Content-Type": "application/json" },
-          timeout: 15000
-        }
-      );
-
-      fundAccountId = fundAccountResponse.data.id;
-      bankName = fundAccountResponse.data.bank_account?.bank_name || "";
-      console.log(`Created fund account: ${fundAccountId}, Bank: ${bankName}`);
+    if (!fundAccountId) {
+      return {
+        success: false,
+        verified: false,
+        error: "Fund account ID not configured. Please add RAZORPAYX_FUND_ACCOUNT_ID to .env file.",
+      };
     }
 
-    // Step 3: Validate fund account (Penny Drop)
+    console.log(`Using fund account: ${fundAccountId}`);
+
+    // Step 1: Fetch fund account details to get registered name
+    let registeredName = "";
+    let bankName = "";
+
+    try {
+      const fundAccountResponse = await axios.get(
+        `https://api.razorpay.com/v1/fund_accounts/${fundAccountId}`,
+        {
+          auth,
+          timeout: 10000
+        }
+      );
+
+      const fundAccountData = fundAccountResponse.data;
+      console.log("Fund account response:", JSON.stringify(fundAccountData, null, 2));
+      
+      registeredName = fundAccountData.bank_account?.name || "";
+      bankName = fundAccountData.bank_account?.bank_name || "";
+
+      console.log(`Fund account details - Name: "${registeredName}", Bank: "${bankName}"`);
+      
+      if (!registeredName) {
+        console.warn("Warning: No registered name found in fund account. Will use validation response.");
+      }
+    } catch (fetchError: any) {
+      console.error("Error fetching fund account:", fetchError.response?.data || fetchError.message);
+      // Don't fail here - continue with validation, we'll get name from validation response
+      console.log("Continuing with validation despite fund account fetch failure...");
+    }
+
+    // Step 2: Create validation request
+    // When using existing fund account, send minimal amount for validation (in paise)
     const validationResponse = await axios.post(
       "https://api.razorpay.com/v1/fund_accounts/validations",
       {
         fund_account: {
           id: fundAccountId
         },
+        amount: 100, // Minimum amount in paise (₹1.00) for penny drop
+        currency: "INR",
         notes: {
           purpose: "bank_account_verification"
         }
@@ -215,29 +214,92 @@ export async function verifyBankAccountWithPennyDrop(
     }
 
     console.log("Final penny drop status:", data.status);
+    console.log("Full validation response:", JSON.stringify(data, null, 2));
 
-    // Check validation results
-    const results = data.results || {};
-    const accountStatus = results.account_status || "";
-    const beneficiaryName = results.registered_name || "";   
+    // Check validation results - RazorpayX uses different field names for different scenarios
+    // "results" for existing fund accounts, "validation_results" for inline creation
+    const validationResults = data.validation_results || data.results || {};
+    const accountStatus = validationResults.account_status || "";
+    const razorpayRegisteredName = validationResults.registered_name || "";
+    const razorpayNameMatchScore = validationResults.name_match_score || null;
+    const statusDetails = data.status_details || {};
+    const accountType = data.fund_account?.account_type || "";
 
-    if (accountStatus.toLowerCase() === "active") {
-      const nameMatchScore = calculateNameMatchScore(accountHolderName, beneficiaryName);
+    console.log("Validation results:", {
+      status: data.status,
+      accountType: accountType,
+      accountStatus: accountStatus,
+      registeredNameFromRazorpay: razorpayRegisteredName,
+      registeredNameFromFundAccount: registeredName,
+      razorpayMatchScore: razorpayNameMatchScore,
+      statusDetails: statusDetails
+    });
 
-      console.log(`Name match score: ${nameMatchScore}% (User: "${accountHolderName}", Bank: "${beneficiaryName}")`);
+    if (data.status === "completed") {
+      // If account_status is empty but status is completed, assume active
+      const isActive = accountStatus === "active" || (!accountStatus && data.status === "completed");
+      
+      if (isActive) {
+        // Check if this is a UPI/VPA account - reject it for name verification
+        if (accountType === "vpa") {
+          console.error("❌ UPI/VPA fund account detected - cannot verify name");
+          return {
+            success: false,
+            verified: false,
+            error: "UPI/VPA fund accounts cannot be used for name verification. Please create a bank account fund account instead.",
+          };
+        }
+        
+        // Get the actual bank registered name (not user input!)
+        const bankRegisteredName = razorpayRegisteredName || registeredName;
+        
+        // If we have no name from bank sources, reject the verification
+        if (!bankRegisteredName) {
+          console.error("❌ No registered name available from bank verification");
+          return {
+            success: false,
+            verified: false,
+            error: "Bank verification failed: No registered name returned. Please ensure you're using a bank account (not UPI) fund account.",
+          };
+        }
+        
+        console.log(`✅ Bank registered name found: "${bankRegisteredName}"`);
+        
+        // Use RazorpayX's match score if available, otherwise calculate our own
+        let finalMatchScore: number;
+        if (razorpayNameMatchScore !== null && razorpayNameMatchScore !== undefined) {
+          finalMatchScore = razorpayNameMatchScore;
+          console.log(`Using RazorpayX name match score: ${finalMatchScore}%`);
+        } else {
+          // Calculate match between user input and ACTUAL bank registered name
+          finalMatchScore = calculateNameMatchScore(accountHolderName, bankRegisteredName);
+          console.log(`Calculated name match score: ${finalMatchScore}% (User: "${accountHolderName}", Bank: "${bankRegisteredName}")`);
+        }
 
-      return {
-        success: true,
-        verified: nameMatchScore >= 80,
-        bankName: bankName,
-        beneficiaryName: beneficiaryName,
-        nameMatchScore: nameMatchScore,
-      };
+        return {
+          success: true,
+          verified: finalMatchScore >= 80,
+          bankName: bankName || data.fund_account?.bank_account?.bank_name || "",
+          beneficiaryName: bankRegisteredName,
+          nameMatchScore: finalMatchScore,
+        };
+      } else {
+        return {
+          success: false,
+          verified: false,
+          error: `Account status is ${accountStatus}. Account must be active for verification.`,
+        };
+      }
     } else if (data.status === "failed") {
+      const errorDescription = statusDetails.description || "Bank account verification failed";
+      const errorReason = statusDetails.reason || "unknown_error";
+      
+      console.error(`Validation failed - Reason: ${errorReason}, Description: ${errorDescription}`);
+      
       return {
         success: false,
         verified: false,
-        error: results.error?.description || "Bank account verification failed",
+        error: errorDescription,
       };
     } else {
       return {
