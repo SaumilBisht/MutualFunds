@@ -205,10 +205,12 @@ export async function verifyBankAccountWithPennyDrop(
       }
       
       if (data.status === "created") {
+        console.error("❌ Validation timed out after 40 seconds");
+        console.log("Final validation data:", JSON.stringify(data, null, 2));
         return {
           success: false,
           verified: false,
-          error: "Verification is taking longer than expected. Please try again in a few minutes.",
+          error: "Verification is taking longer than expected. This may happen in test mode. Please check your RazorpayX dashboard or try again later.",
         };
       }
     }
@@ -239,7 +241,8 @@ export async function verifyBankAccountWithPennyDrop(
       // If account_status is empty but status is completed, assume active
       const isActive = accountStatus === "active" || (!accountStatus && data.status === "completed");
       
-      if (isActive) {
+      if (isActive) 
+      {
         // Check if this is a UPI/VPA account - reject it for name verification
         if (accountType === "vpa") {
           console.error("❌ UPI/VPA fund account detected - cannot verify name");
@@ -250,27 +253,28 @@ export async function verifyBankAccountWithPennyDrop(
           };
         }
         
-        // Get the actual bank registered name (not user input!)
         const bankRegisteredName = razorpayRegisteredName || registeredName;
         
         // If we have no name from bank sources, reject the verification
         if (!bankRegisteredName) {
-          console.error("❌ No registered name available from bank verification");
+          console.error(" No registered name available from bank verification");
           return {
             success: false,
             verified: false,
-            error: "Bank verification failed: No registered name returned. Please ensure you're using a bank account (not UPI) fund account.",
+            error: "Bank verification failed: No registered name returned. Please ensure you're using a bank account account.",
           };
         }
         
-        console.log(`✅ Bank registered name found: "${bankRegisteredName}"`);
+        console.log(` Bank registered name found: "${bankRegisteredName}"`);
         
         // Use RazorpayX's match score if available, otherwise calculate our own
         let finalMatchScore: number;
         if (razorpayNameMatchScore !== null && razorpayNameMatchScore !== undefined) {
           finalMatchScore = razorpayNameMatchScore;
           console.log(`Using RazorpayX name match score: ${finalMatchScore}%`);
-        } else {
+        } 
+        else 
+        {
           // Calculate match between user input and ACTUAL bank registered name
           finalMatchScore = calculateNameMatchScore(accountHolderName, bankRegisteredName);
           console.log(`Calculated name match score: ${finalMatchScore}% (User: "${accountHolderName}", Bank: "${bankRegisteredName}")`);
