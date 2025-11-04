@@ -29,6 +29,7 @@ export default function BankDetails() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [fetchingIfsc, setFetchingIfsc] = useState(false)
+  const [ifscSuccess, setIfscSuccess] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [success, setSuccess] = useState(false)
 
@@ -65,6 +66,7 @@ export default function BankDetails() {
     if (ifsc.length !== 11) return
 
     setFetchingIfsc(true)
+    setIfscSuccess(false)
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/bank/ifsc/${ifsc}`,
@@ -77,12 +79,21 @@ export default function BankDetails() {
         bankName: bankData.bankName,
         branchName: `${bankData.branch}, ${bankData.city}`
       }))
-      setErrors([])
+      setIfscSuccess(true)
+      // Clear only IFSC-related errors, not verification errors
+      setErrors(prev => prev.filter(err => 
+        !err.includes("IFSC") && 
+        !err.includes("fetch bank details")
+      ))
     } catch (err: any) {
+      setIfscSuccess(false)
+      // Only show IFSC errors if it's not found - don't prevent manual entry
       if (err.response?.status === 404) {
-        setErrors(["IFSC code not found. Please verify and try again."])
+        console.warn("IFSC not found, user can enter bank details manually")
+        // Don't show error - just let user fill manually
       } else {
-        setErrors(["Failed to fetch bank details. Please enter manually."])
+        console.error("Failed to fetch bank details:", err.message)
+        // Don't show error - just let user fill manually
       }
     } finally {
       setFetchingIfsc(false)
@@ -93,6 +104,7 @@ export default function BankDetails() {
     const upperValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "")
     if (upperValue.length <= 11) {
       setFormData(prev => ({ ...prev, ifscCode: upperValue }))
+      setIfscSuccess(false) // Reset success state when user types
       
       if (upperValue.length === 11) {
         fetchBankDetails(upperValue)
@@ -134,10 +146,19 @@ export default function BankDetails() {
     setErrors([])
   }
 
-  if (loading) {
+  if (loading || submitting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="text-center">
+          <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          {submitting && (
+            <div className="space-y-2">
+              <p className="text-lg font-semibold text-gray-900">Verifying Bank Account</p>
+              <p className="text-sm text-gray-600">Please wait while we verify your bank details...</p>
+              <p className="text-xs text-gray-500">This may take up to 30-40 seconds</p>
+            </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -276,9 +297,22 @@ export default function BankDetails() {
                     <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
                   </div>
                 )}
+                {ifscSuccess && !fetchingIfsc && (
+                  <div className="absolute right-3 top-3">
+                    <div className="h-5 w-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                11-character code (Example: SBIN0001234)
+                {ifscSuccess ? (
+                  <span className="text-green-600 font-medium">✓ Bank details fetched successfully</span>
+                ) : (
+                  "11-character code (Example: SBIN0001234)"
+                )}
               </p>
             </div>
 
