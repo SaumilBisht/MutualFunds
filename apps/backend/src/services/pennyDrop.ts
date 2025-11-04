@@ -219,7 +219,7 @@ export async function verifyBankAccountWithPennyDrop(
     // Check validation results
     const results = data.results || {};
     const accountStatus = results.account_status || "";
-    const beneficiaryName = results.registered_name || accountHolderName;
+    const beneficiaryName = results.registered_name || "";   
 
     if (accountStatus.toLowerCase() === "active") {
       const nameMatchScore = calculateNameMatchScore(accountHolderName, beneficiaryName);

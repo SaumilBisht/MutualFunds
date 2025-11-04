@@ -7,7 +7,8 @@ import { prisma } from "db/client";
 const bankRouter: Router = express.Router();
 
 bankRouter.post("/verify", verifyAuth,async (req: Request, res: Response) => {
-  try {
+  try 
+  {
     const {
       accountNumber,
       ifscCode,
@@ -17,7 +18,6 @@ bankRouter.post("/verify", verifyAuth,async (req: Request, res: Response) => {
       branchName
     } = req.body;
 
-    // Validation
     const errors: string[] = [];
 
     // Account Number validation
@@ -60,7 +60,7 @@ bankRouter.post("/verify", verifyAuth,async (req: Request, res: Response) => {
     }
 
     //@ts-ignore
-    console.log(`Starting penny drop verification for user ${req.user?.userId}`);
+    console.log(`Starting penny drop verification for user ${req.user?.email}`);
     
     const pennyDropResult = await verifyBankAccountWithPennyDrop(
       accountNumber,
@@ -75,7 +75,8 @@ bankRouter.post("/verify", verifyAuth,async (req: Request, res: Response) => {
       });
     }
 
-    if (!pennyDropResult.verified) {
+    if (!pennyDropResult.verified) 
+    {
       return res.status(400).json({
         success: false,
         error: `Name verification failed. Bank name: "${pennyDropResult.beneficiaryName}". Match score: ${pennyDropResult.nameMatchScore}% (minimum 80% required)`,
