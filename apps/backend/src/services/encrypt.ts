@@ -15,3 +15,16 @@ export function decrypt(hex: string) {
   out += decipher.final("utf8");
   return out;
 }
+
+// Safer variant: if input is not valid hex (even-length, hex chars),
+// return the input as-is instead of throwing. Useful for legacy/plain values in DB.
+export function safeDecrypt(maybeHex: string) {
+  try {
+    if (typeof maybeHex !== "string") return maybeHex as any;
+    const isHex = /^[0-9a-fA-F]+$/.test(maybeHex) && maybeHex.length % 2 === 0;
+    if (!isHex) return maybeHex; // not hex -> assume already plain
+    return decrypt(maybeHex);
+  } catch {
+    return maybeHex;
+  }
+}

@@ -88,6 +88,12 @@ model User {
   kraVerified      Boolean      @default(false) // KRA verification status
 
   fatcaDeclaration Json?        // e.g. JSON of FATCA form answers
+  // NSE Registration fields (MVP)
+  uccCode          String?     @unique
+  fatcaSubmitted   Boolean     @default(false)
+  elogAuthenticated Boolean    @default(false)
+  nseStatus        String?
+  nseLastUpdated   DateTime?
   // Relations
   sips             SIP[]
   investments      Investment[]

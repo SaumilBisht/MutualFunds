@@ -12,7 +12,12 @@ export default function Sign() {
   const [uploading, setUploading] = useState(false)
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
+  const [stage, setStage] = useState<"upload"|"ready"|"processing"|"otp"|"success">("upload")
+  const [maskedEmail, setMaskedEmail] = useState("")
+  const [maskedPhone, setMaskedPhone] = useState("")
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]) 
+  const [resendIn, setResendIn] = useState(60)
+  const [ucc, setUcc] = useState("")
 
   useEffect(() => {
     async function checkStatus() {
@@ -23,7 +28,9 @@ export default function Sign() {
         )
         const data = res.data
         if (data.currentStep < 6) router.push("/bankdetails")
-        else if (data.currentStep > 6) router.push("/dashboard")
+        else if (data.currentStep > 6) {
+          // user may already be activated
+        }
       } catch (err) {
         router.push("/dashboard")
       } finally {
@@ -73,10 +80,7 @@ export default function Sign() {
 
       if (res.data.signatureKey) {
         setSignatureUrl(res.data.signatureKey)
-        setSuccess(true)
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 2000)
+        setStage("ready")
       }
     } catch (err) {
       console.error(err)
@@ -107,7 +111,68 @@ export default function Sign() {
     )
   }
 
-  if (success) {
+  if (stage === "processing") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Setting up your account...</h2>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>⏳ Creating UCC</li>
+            <li>⏳ Processing FATCA...</li>
+            <li>⏳ Sending verification code...</li>
+          </ul>
+          <div className="flex justify-center mt-6">
+            <div className="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (stage === "otp") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Verify your account</h2>
+          <div className="text-sm text-gray-700 space-y-1 mb-4">
+            <p>📧 Verification code sent to:</p>
+            <p className="font-medium">{maskedEmail}</p>
+            <p className="font-medium">{maskedPhone}</p>
+          </div>
+          <div className="grid grid-cols-6 gap-2 mb-4">
+            {otp.map((d, i) => (
+              <input key={i} value={d} onChange={(e)=>{
+                  const val = e.target.value.replace(/\D/g,"").slice(0,1)
+                  const next = [...otp]; next[i]=val; setOtp(next)
+                }}
+                className="w-10 h-12 border text-center rounded-md" />
+            ))}
+          </div>
+          <button onClick={async()=>{
+            try{
+              const code = otp.join("")
+              const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/nse/verify-otp`,{otp:code},{withCredentials:true})
+              setUcc(res.data.ucc)
+              setStage("success")
+            }catch(err:any){
+              alert(err.response?.data?.error || "Invalid OTP")
+            }
+          }} className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold">Verify</button>
+          <div className="text-xs text-gray-600 mt-3">Resend in: {resendIn}s</div>
+          <button disabled={resendIn>0} onClick={async()=>{
+            try{
+              await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/nse/resend-otp`,{}, {withCredentials:true});
+              setResendIn(60)
+            }catch(e){
+              // ignore
+            }
+          }} className="text-xs text-blue-600 mt-1 disabled:text-gray-400">Resend OTP</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (stage === "success") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
@@ -116,8 +181,13 @@ export default function Sign() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Signature Uploaded!</h2>
-          <p className="text-gray-600">Your onboarding is complete. Redirecting to dashboard...</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Account Activated!</h2>
+          <p className="text-gray-600 mb-4">Your UCC: <span className="font-semibold">{ucc}</span></p>
+          <p className="text-green-600 font-semibold mb-6">Status: READY TO TRADE</p>
+          <div className="flex gap-3">
+            <button onClick={()=>router.push("/dashboard")} className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg">Go to Dashboard</button>
+            <button onClick={()=>router.push("/explore")} className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg">Buy Mutual Fund</button>
+          </div>
         </div>
       </div>
     )
@@ -267,8 +337,8 @@ export default function Sign() {
               </button>
             </div>
 
-            {/* Saved Signature Display */}
-            {signatureUrl && !success && (
+            {/* Saved Signature Display + Activate NSE */}
+            {signatureUrl && (
               <div className="mt-6 border border-green-200 rounded-lg p-6 bg-green-50">
                 <div className="flex items-center mb-4">
                   <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -283,12 +353,28 @@ export default function Sign() {
                     className="max-h-32 object-contain"
                   />
                 </div>
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                >
-                  Continue to Dashboard →
-                </button>
+                {stage==='ready' && (
+                  <button
+                    onClick={async()=>{
+                      setStage('processing')
+                      try{
+                        const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/nse/activate`,{}, {withCredentials:true})
+                        setMaskedEmail(res.data.emailMasked)
+                        setMaskedPhone(res.data.phoneMasked)
+                        setUcc(res.data.ucc)
+                        setStage('otp')
+                        setResendIn(60)
+                        const t = setInterval(()=> setResendIn((s)=>{ if(s<=1){ clearInterval(t as any); return 0} return s-1}),1000)
+                      }catch(err:any){
+                        alert(err.response?.data?.error || 'Activation failed')
+                        setStage('ready')
+                      }
+                    }}
+                    className="w-full px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700"
+                  >
+                    ACTIVATE NSE ACCOUNT
+                  </button>
+                )}
               </div>
             )}
           </div>
