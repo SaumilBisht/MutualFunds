@@ -1,6 +1,6 @@
-FROM node:22-slim
+FROM node:22-alpine
 
-RUN apt-get update && apt-get install -y openssl
+RUN apk update && apk add openssl
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -16,7 +16,8 @@ COPY apps/backend ./apps/backend
 RUN pnpm install
 
 COPY . .
+
 RUN pnpm run db:generate
 
-EXPOSE 3001
+EXPOSE 3002
 CMD ["pnpm", "run", "start:be"]
