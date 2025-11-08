@@ -14,6 +14,11 @@ import {
   decrypt,
   convertDigilockerDateToDate,
 } from '../services/digilockerService.js';
+import {
+  checkPanStatus,
+  registerKra,
+  formatDateForDigio,
+} from '../services/digioKraService.js';
 
 //Request extend kri and type bhi add for req.user from verify auth middleware
 interface AuthRequest extends Request {
@@ -194,6 +199,73 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     console.log('PAN-Aadhaar linkage confirmed!');
 
+    let kraValidated = false;
+    let kraRefId = null;
+    let kraStatusCode = null;
+    let kraStatusDate = null;
+
+    try 
+    {
+      console.log('Starting KRA validation for PAN:', pan);
+      
+      const dobFormatted = formatDateForDigio(new Date(user.dob!));
+      const kraStatus = await checkPanStatus(pan, dobFormatted, user.phone!);
+
+      kraValidated = kraStatus.validated;
+      kraRefId = kraStatus.refId;
+      kraStatusCode = kraStatus.statusCode;
+      kraStatusDate = kraStatus.statusDate ? new Date(kraStatus.statusDate) : new Date();
+
+      console.log('KRA Status:', kraStatus.statusCode, '-', kraStatus.status);
+
+      // If not validated, attempt registration
+      if (!kraValidated) {
+        console.log('PAN not KRA validated. Attempting registration...');
+        
+        const regResult = await registerKra({
+          panNo: pan,
+          dob: dobFormatted,
+          gender: aadhaarData.gender === 'M' ? 'M' : aadhaarData.gender === 'F' ? 'F' : 'O',
+          mobile: user.phone!,
+          email: user.email!,
+          applicantName: aadhaarData.name,
+          aadhaarLastFour: aadhaarData.aadhaarLastFour,
+          permanentAddress: {
+            line1: aadhaarData.address.house || aadhaarData.address.care_of || 'Address Line 1',
+            line2: aadhaarData.address.landmark || aadhaarData.address.locality,
+            city: aadhaarData.address.village_town_city || aadhaarData.address.district || 'City',
+            state: aadhaarData.address.state || 'State',
+            pincode: aadhaarData.address.pincode || '000000',
+            country: '101', // India
+          },
+          correspondenceAddress: {
+            line1: aadhaarData.address.house || aadhaarData.address.care_of || 'Address Line 1',
+            line2: aadhaarData.address.landmark || aadhaarData.address.locality,
+            city: aadhaarData.address.village_town_city || aadhaarData.address.district || 'City',
+            state: aadhaarData.address.state || 'State',
+            pincode: aadhaarData.address.pincode || '000000',
+            country: '101',
+          },
+          kycDate: new Date().toLocaleDateString('en-GB').replace(/\//g, '/'),
+        });
+
+        if (regResult.success) {
+          kraValidated = true;
+          kraRefId = regResult.refId;
+          kraStatusCode = regResult.kraStatusCode;
+          kraStatusDate = new Date();
+          console.log('KRA registration successful:', regResult.refId);
+        } else {
+          console.warn('KRA registration failed:', regResult.errorMessage);
+          // Continue anyway - user can trade with pending KRA (or block if needed)
+        }
+      }
+    } catch (kraError: any) {
+      console.error('KRA validation error:', kraError.message);
+      // Non-blocking: continue with KYC even if KRA fails
+      // User can be prompted to complete KRA later
+    }
+
     const tokenExpiresAt = new Date(Date.now() + tokenData.expiresIn * 1000);
 
     await prisma.user.update({
@@ -228,6 +300,12 @@ router.get('/callback', async (req: Request, res: Response) => {
         dlAccessToken: encrypt(tokenData.accessToken),
         dlRefreshToken: encrypt(tokenData.refreshToken),
         dlTokenExpiresAt: tokenExpiresAt,
+
+        // KRA Validation fields
+        kraVerified: kraValidated,
+        kraRefId: kraRefId,
+        kraStatusCode: kraStatusCode,
+        kraStatusDate: kraStatusDate,
 
         currentStep: Math.max(user.currentStep, 3),
       },

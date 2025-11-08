@@ -86,6 +86,9 @@ model User {
   ckycRefId        String?      // CKYC reference after PAN verification
   kycType          KycType?     // VALIDATED, REGISTERED, ON_HOLD
   kraVerified      Boolean      @default(false) // KRA verification status
+  kraRefId         String?      // Digio KRA reference ID
+  kraStatusCode    String?      // KRA status code (e.g. "007" for validated)
+  kraStatusDate    DateTime?    // Date of KRA validation/registration
 
   fatcaDeclaration Json?        // e.g. JSON of FATCA form answers
   // NSE Registration fields (MVP)
