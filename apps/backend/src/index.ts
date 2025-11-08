@@ -10,6 +10,7 @@ import { nseRouter } from "./routes/nseRoutes.js";
 import mfRoutes from "./routes/mfRoutes.js";
 import paymentRouter from "./routes/payment.js";
 import bankRouter from "./routes/bank.js";
+import watchlistRouter from "./routes/watchlist.js";
 import { scheduleAmfiFetch } from "./services/amfiService.js";
 
 const app=express();
@@ -37,6 +38,7 @@ app.use('/api/nse',nseRouter)
 app.use("/mf", mfRoutes);
 app.use("/payments", paymentRouter);
 app.use("/bank", bankRouter);
+app.use("/api/watchlist", watchlistRouter);
 
 console.log("Initializing AMFI service...");
 scheduleAmfiFetch();

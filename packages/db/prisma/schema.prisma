@@ -99,6 +99,7 @@ model User {
   investments      Investment[]
   payments         Payment[]
   kycSessions      KycSession[]
+  watchlist        Watchlist[]
 }
 model KycSession {
   id              String   @id @default(cuid())
@@ -156,6 +157,23 @@ model Investment {
   createdAt       DateTime @default(now())
 
   Payment Payment[]
+}
+
+model Watchlist {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  schemeCode      String
+  amcCode         String
+  fundName        String
+  category        String?
+  currentNav      Float?
+  
+  addedAt         DateTime @default(now())
+  
+  @@unique([userId, schemeCode])
+  @@index([userId])
 }
 
 model Payment {

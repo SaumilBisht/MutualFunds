@@ -2,6 +2,7 @@
 import { useParams } from "next/navigation"
 import axios from "axios"
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { NavChart } from "../../../components/NavChart"
 import { SipCalculator } from "../../../components/SipCalculator"
@@ -28,6 +29,7 @@ interface Scheme {
 
 export default function SchemeDetails() {
   const { code } = useParams()
+  const { data: session } = useSession()
   const [scheme, setScheme] = useState<Scheme | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +39,9 @@ export default function SchemeDetails() {
     threeYears: string | null;
     fiveYears: string | null;
   } | null>(null)
+  const [isWatchlisted, setIsWatchlisted] = useState(false)
+  const [togglingWatchlist, setTogglingWatchlist] = useState(false)
+  const [watchlistItemId, setWatchlistItemId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchScheme = async () => {
@@ -59,6 +64,70 @@ export default function SchemeDetails() {
 
     if (code) fetchScheme()
   }, [code])
+
+  useEffect(() => {
+    const checkWatchlistStatus = async () => {
+      if (!session || !code) return
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/watchlist/check/${code}`,
+          { withCredentials: true }
+        )
+        setIsWatchlisted(res.data.isWatchlisted)
+        if (res.data.watchlistItem) {
+          setWatchlistItemId(res.data.watchlistItem.id)
+        }
+      } catch (err) {
+        console.error("Failed to check watchlist status:", err)
+      }
+    }
+
+    checkWatchlistStatus()
+  }, [session, code])
+
+  const toggleWatchlist = async () => {
+    if (!session) {
+      alert("Please sign in to add to watchlist")
+      return
+    }
+
+    if (!scheme) return
+
+    setTogglingWatchlist(true)
+    try {
+      if (isWatchlisted && watchlistItemId) {
+        await axios.delete(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/watchlist/${watchlistItemId}`,
+          { withCredentials: true }
+        )
+        setIsWatchlisted(false)
+        setWatchlistItemId(null)
+      } else {
+        const res = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/watchlist/add`,
+          {
+            schemeCode: scheme.schemeCode,
+            amcCode: scheme.schemeCode.slice(0, 6),
+            fundName: scheme.schemeName,
+            category: scheme.category,
+            currentNav: scheme.netAssetValue ? parseFloat(scheme.netAssetValue) : null,
+          },
+          { withCredentials: true }
+        )
+        setIsWatchlisted(true)
+        setWatchlistItemId(res.data.watchlistItem.id)
+      }
+    } catch (err: any) {
+      console.error("Failed to toggle watchlist:", err)
+      if (err.response?.data?.error === "Fund already in watchlist") {
+        setIsWatchlisted(true)
+      } else {
+        alert("Failed to update watchlist")
+      }
+    } finally {
+      setTogglingWatchlist(false)
+    }
+  }
 
   if (loading)
     return (
@@ -106,11 +175,47 @@ export default function SchemeDetails() {
           )}
 
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2 text-gray-900">{scheme.schemeName}</h1>
-            <div className="flex gap-6 text-sm text-gray-600">
-              <p>Code: <span className="font-medium">{scheme.schemeCode}</span></p>
-              {scheme.netAssetValue && <p>Current NAV: <span className="font-semibold text-gray-900">₹{scheme.netAssetValue}</span></p>}
-              {scheme.date && <p>Updated: {scheme.date}</p>}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold mb-2 text-gray-900">{scheme.schemeName}</h1>
+                <div className="flex gap-6 text-sm text-gray-600">
+                  <p>Code: <span className="font-medium">{scheme.schemeCode}</span></p>
+                  {scheme.netAssetValue && <p>Current NAV: <span className="font-semibold text-gray-900">₹{scheme.netAssetValue}</span></p>}
+                  {scheme.date && <p>Updated: {scheme.date}</p>}
+                </div>
+              </div>
+              
+              {/* Watchlist Button */}
+              {session && (
+                <button
+                  onClick={toggleWatchlist}
+                  disabled={togglingWatchlist}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border transition-all hover:shadow-md disabled:opacity-50"
+                  style={{
+                    borderColor: isWatchlisted ? '#eab308' : '#d1d5db',
+                    backgroundColor: isWatchlisted ? '#fef9c3' : 'white',
+                    color: isWatchlisted ? '#854d0e' : '#6b7280'
+                  }}
+                >
+                  {togglingWatchlist ? (
+                    <div className="animate-spin h-5 w-5 border-2 border-current border-t-transparent rounded-full"></div>
+                  ) : isWatchlisted ? (
+                    <>
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      <span className="font-medium">Watchlisted</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      <span className="font-medium">Add to Watchlist</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

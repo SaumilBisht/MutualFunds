@@ -118,6 +118,7 @@ export default function Header() {
   const navLinks = [
     { name: "Dashboard", path: "/dashboard" },
     { name: "Explore", path: "/explore" },
+    ...(user ? [{ name: "Watchlist", path: "/watchlist" }] : []),
     { name: "Portfolio", path: "/portfolio" },
   ]
 
