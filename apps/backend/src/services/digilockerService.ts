@@ -133,7 +133,11 @@ export async function getAadhaarDetails(accessToken: string) {
     const parsedData = await parseXml(xmlData);
     const aadhaarData = extractAadhaarData(parsedData);
 
-    return aadhaarData;
+    // Return both parsed data AND raw XML for KRA registration
+    return {
+      ...aadhaarData,
+      rawXml: xmlData, // Raw XML needed for KRA registration
+    };
   } catch (error: any) {
     console.error('[DigiLocker] Error fetching Aadhaar details:', error.message);
     throw new Error('Failed to fetch Aadhaar details from DigiLocker');
@@ -323,8 +327,45 @@ export async function checkPanInDigiLocker(accessToken: string, userEnteredPan: 
 
     // Step 3: Fetch PAN document to get PAN number
     try {
-      const panDetails = await getDocument(accessToken, panDoc.uri);
-      const panFromDoc = extractPanFromDocument(panDetails);
+      // Prefer XML format if available (more reliable extraction)
+      const hasXmlFormat = panDoc.mime && Array.isArray(panDoc.mime) && 
+                          panDoc.mime.some((m: any) => 
+                            m === 'application/xml' || m?.type === 'application/xml'
+                          );
+      
+      let panFromDoc = '';
+      
+      if (hasXmlFormat) {
+        console.log('[DigiLocker] PAN document has XML format - using XML endpoint');
+        try {
+          const xmlResponse = await axios.get(
+            `${DIGILOCKER_BASE_URL}/oauth2/1/xml/${panDoc.uri}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                Accept: 'application/xml',
+              },
+            }
+          );
+          
+          // Parse PAN XML to extract PAN number
+          const parsedXml: any = await parseXml(xmlResponse.data);
+          // PAN XML structure: <PAN><PanNumber>ABCDE1234F</PanNumber>...</PAN>
+          panFromDoc = parsedXml.PAN?.PanNumber?.[0] || 
+                       parsedXml.PAN?.$?.pan || 
+                       extractPanFromDocument(xmlResponse.data);
+          
+          console.log('[DigiLocker] PAN extracted from XML:', panFromDoc);
+        } catch (xmlError) {
+          console.warn('[DigiLocker] XML extraction failed, falling back to document pull');
+          const panDetails = await getDocument(accessToken, panDoc.uri);
+          panFromDoc = extractPanFromDocument(panDetails);
+        }
+      } else {
+        console.log('[DigiLocker] Using document pull endpoint (no XML format)');
+        const panDetails = await getDocument(accessToken, panDoc.uri);
+        panFromDoc = extractPanFromDocument(panDetails);
+      }
       
       console.log(`[DigiLocker] PAN from document: ${panFromDoc}`);
       console.log(`[DigiLocker] User entered PAN: ${userEnteredPan.toUpperCase()}`);

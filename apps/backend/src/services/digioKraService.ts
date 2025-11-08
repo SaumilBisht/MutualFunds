@@ -28,36 +28,6 @@ export interface KraStatusResponse {
   panNumber?: string;
 }
 
-export interface KraDetailsResponse {
-  panNumber: string;
-  name: string;
-  dob: string;
-  gender: string;
-  fatherName?: string;
-  mobile?: string;
-  email?: string;
-  correspondenceAddress?: {
-    line1: string;
-    line2?: string;
-    city: string;
-    state: string;
-    pincode: string;
-    country: string;
-  };
-  permanentAddress?: {
-    line1: string;
-    line2?: string;
-    city: string;
-    state: string;
-    pincode: string;
-    country: string;
-  };
-  kycStatus: string;
-  kycStatusCode: string;
-  kycStatusDescription: string;
-  refId: string;
-}
-
 export interface KraRegistrationResponse {
   success: boolean;
   panNumber: string;
@@ -112,76 +82,17 @@ export async function checkPanStatus(
   }
 }
 
-export async function fetchKraDetails(
-  panNo: string,
-  dob: string, 
-  mobile: string
-): Promise<KraDetailsResponse> {
-  const uniqueRequestId = `KRA_FETCH_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-  
-  const payload = {
-    pan_no: panNo.toUpperCase(),
-    dob,
-    fetch_type: "I",
-    unique_request_id: uniqueRequestId,
-    service_provider: "NDML",
-    mobile,
-  };
-
-  try {
-    const { data } = await axios.post(
-      `${DIGIO_BASE_URL}/v3/client/kyc/kra/download_pan`,
-      payload,
-      { headers: digioHeaders, timeout: 20000 }
-    );
-
-    const personal = data.personal_information || {};
-    const contact = data.contact_information || {};
-    const kycInfo = data.kyc_information || {};
-    const corrAddr = contact.correspondence_address || {};
-    const permAddr = contact.permanent_address || {};
-
-    return {
-      panNumber: personal.pan_number,
-      name: personal.name,
-      dob: personal.dob,
-      gender: personal.gender,
-      fatherName: personal.father_name,
-      mobile: contact.mobile_number,
-      email: contact.email_address,
-      correspondenceAddress: {
-        line1: corrAddr.address_line1 || "",
-        line2: corrAddr.address_line2,
-        city: corrAddr.city || "",
-        state: corrAddr.state || "",
-        pincode: corrAddr.pin_code || "",
-        country: corrAddr.country || "101", 
-      },
-      permanentAddress: {
-        line1: permAddr.address_line1 || "",
-        line2: permAddr.address_line2,
-        city: permAddr.city || "",
-        state: permAddr.state || "",
-        pincode: permAddr.pin_code || "",
-        country: permAddr.country || "101",
-      },
-      kycStatus: kycInfo.status,
-      kycStatusCode: kycInfo.status_code,
-      kycStatusDescription: kycInfo.status_description,
-      refId: data.ref_id,
-    };
-  } catch (error: any) {
-    console.error("Digio KRA fetch error:", error.response?.data || error.message);
-    throw new Error(
-      error.response?.data?.error?.error_message || 
-      "Failed to fetch KRA details"
-    );
-  }
-}
-
+/**
+ * Register KRA with Digio
+ * Updated to comply with CVL KRA rules (effective Aug 2025):
+ * - PAN no longer accepted as Proof of Identity (POI)
+ * - Must use Aadhaar (UID) as POI
+ * - pan_copy must be "N"
+ * - app_exmt_id_proof must be "02" (UID/Aadhaar)
+ */
 export async function registerKra(params: {
   panNo: string;
-  dob: string;
+  dob: string; // DD/MM/YYYY
   gender: string; // M/F/O
   mobile: string;
   email: string;
@@ -189,7 +100,9 @@ export async function registerKra(params: {
   fatherName?: string;
   motherName?: string;
   aadhaarLastFour?: string;
-  aadhaarXml?: string; // Base64-encoded Aadhaar XML if available
+  aadhaarXmlBase64?: string; // Base64-encoded Aadhaar XML from DigiLocker
+  photoBase64?: string; // Base64-encoded photo (from DigiLocker or user upload)
+  signatureBase64?: string; // Base64-encoded signature (from S3)
   permanentAddress: {
     line1: string;
     line2?: string;
@@ -209,19 +122,23 @@ export async function registerKra(params: {
   occupation?: string;
   maritalStatus?: string;
   nationality?: string;
-  kycDate?: string; 
-  ipvDate?: string;
+  kycDate?: string; // DD/MM/YYYY
+  ipvDate?: string; // DD/MM/YYYY
 }): Promise<KraRegistrationResponse> {
   const uniqueRequestId = `KRA_REG_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
   const payload = {
     common_kra_registration_request: {
-      uid_no: "", // Leave blank if Aadhaar not shared
+      // Aadhaar last 4 digits (not full UID for privacy)
+      uid_no: "", // Leave blank - we'll use aadhaar_digit field instead
+      aadhaar_digit: params.aadhaarLastFour || "",
+      
+      // Basic details
       pan_no: params.panNo.toUpperCase(),
       dob_date: params.dob,
-      ipv_date: params.ipvDate || params.kycDate || params.dob, // Fallback to DOB if no IPV
+      ipv_date: params.ipvDate || params.kycDate || params.dob,
       gender: params.gender,
-      martial_status: params.maritalStatus || "01", // 01 = Single (default)
+      martial_status: params.maritalStatus || "01", // 01 = Single
       occupation: params.occupation || "99", // 99 = Others
       mob_no: params.mobile,
       email: params.email,
@@ -235,9 +152,12 @@ export async function registerKra(params: {
       per_state: params.permanentAddress.state,
       per_country: params.permanentAddress.country || "101", // 101 = India
       per_district: "",
-      per_add_proof: "03", // 03 = Aadhaar (default)
+      per_add_proof: "03", // 03 = Aadhaar
       
-      pan_copy: "Y",
+      // CVL KRA Rules (Aug 2025): PAN no longer valid as POI
+      pan_copy: "N", // MUST be "N" - PAN not accepted as Proof of Identity
+      app_exmt_id_proof: "02", // 02 = UID/Aadhaar (not 01 = PAN)
+      
       applicant_name: params.applicantName,
       father_name: params.fatherName || "",
       applicant_citizenship: params.nationality || "01", // 01 = Indian
@@ -259,11 +179,12 @@ export async function registerKra(params: {
       kyc_date: params.kycDate || new Date().toLocaleDateString("en-GB").replace(/\//g, "/"),
       kyc_mode: "E", // E = E-KYC (Aadhaar-based)
       kyc_type: "01", // 01 = Simplified KYC
-      app_upload_type: "XML", // XML upload if Aadhaar XML present
+      app_upload_type: "XML", // XML upload for Aadhaar
       
-      // Aadhaar details
-      aadhaar_digit: params.aadhaarLastFour || "",
-      aadhaar_xml: params.aadhaarXml || "",
+      // Aadhaar XML and documents
+      aadhaar_xml: params.aadhaarXmlBase64 || "", // Base64-encoded Aadhaar XML
+      app_doc_photo: params.photoBase64 || "", // Base64-encoded photo
+      app_doc_sign: params.signatureBase64 || "", // Base64-encoded signature
       
       // FATCA (for individuals, minimal)
       fatca_place_birth: params.permanentAddress.city,

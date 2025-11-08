@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from 'express';
 import { prisma } from 'db/client';
 import { verifyAuth } from '../middlewares/auth.js';
+import axios from 'axios';
 import {
   generatePKCE,
   generateState,
@@ -19,6 +20,17 @@ import {
   registerKra,
   formatDateForDigio,
 } from '../services/digioKraService.js';
+
+async function imageUrlToBase64(imageUrl: string): Promise<string> {
+  try {
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(response.data, 'binary');
+    return buffer.toString('base64');
+  } catch (error: any) {
+    console.error('Failed to fetch and convert image:', error.message);
+    throw new Error('Failed to convert image to base64');
+  }
+}
 
 //Request extend kri and type bhi add for req.user from verify auth middleware
 interface AuthRequest extends Request {
@@ -222,6 +234,28 @@ router.get('/callback', async (req: Request, res: Response) => {
       if (!kraValidated) {
         console.log('PAN not KRA validated. Attempting registration...');
         
+        // Extract photo from DigiLocker data (remove data:image/jpeg;base64, prefix)
+        const photoBase64 = aadhaarData.photoBase64?.replace(/^data:image\/\w+;base64,/, '') || '';
+        
+        // Encode raw Aadhaar XML to base64
+        const aadhaarXmlBase64 = aadhaarData.rawXml 
+          ? Buffer.from(aadhaarData.rawXml).toString('base64') 
+          : '';
+        
+        // Fetch signature from S3 if available
+        let signatureBase64 = '';
+        if (user.signatureUrl) {
+          try {
+            signatureBase64 = await imageUrlToBase64(user.signatureUrl);
+            console.log('Signature fetched and converted to base64');
+          } catch (signError) {
+            console.warn('Failed to fetch signature from S3:', signError);
+            // Continue without signature - Digio may accept registration without it
+          }
+        } else {
+          console.warn('No signature URL found for user - KRA registration may fail');
+        }
+        
         const regResult = await registerKra({
           panNo: pan,
           dob: dobFormatted,
@@ -230,6 +264,9 @@ router.get('/callback', async (req: Request, res: Response) => {
           email: user.email!,
           applicantName: aadhaarData.name,
           aadhaarLastFour: aadhaarData.aadhaarLastFour,
+          aadhaarXmlBase64: aadhaarXmlBase64, // Base64-encoded Aadhaar XML
+          photoBase64: photoBase64, // Base64-encoded photo from DigiLocker
+          signatureBase64: signatureBase64, // Base64-encoded signature from S3
           permanentAddress: {
             line1: aadhaarData.address.house || aadhaarData.address.care_of || 'Address Line 1',
             line2: aadhaarData.address.landmark || aadhaarData.address.locality,
