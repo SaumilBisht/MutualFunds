@@ -21,14 +21,24 @@ function generateSlug(title: string): string {
     .replace(/-+/g, '-');     // Replace multiple - with single -
 }
 
-// Get all blogs (with pagination)
-router.get('/', verifyAdminToken, async (req: AdminAuthRequest, res: Response) => {
+// Get all blogs (with pagination) - ALLOWS PUBLIC ACCESS for published blogs
+router.get('/', async (req: AdminAuthRequest, res: Response) => {
   try {
     const page = Math.max(1, Number(req.query.page || 1));
     const limit = Math.min(50, Math.max(10, Number(req.query.limit || 20)));
-    const status = req.query.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | undefined;
+    const statusQuery = req.query.status as string | undefined;
 
-    const where = status ? { status } : {};
+    // Check if user is authenticated
+    const isAuthenticated = req.headers.authorization?.startsWith('Bearer ');
+    
+    // Build where clause
+    let where: any = {};
+    if (statusQuery === 'DRAFT' || statusQuery === 'PUBLISHED' || statusQuery === 'ARCHIVED') {
+      where.status = statusQuery;
+    } else if (!isAuthenticated) {
+      // If not authenticated, only show published blogs
+      where.status = 'PUBLISHED';
+    }
 
     const [blogs, total] = await Promise.all([
       prisma.blog.findMany({

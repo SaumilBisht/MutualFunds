@@ -120,6 +120,7 @@ export default function Header() {
     { name: "Explore", path: "/explore" },
     ...(user ? [{ name: "Watchlist", path: "/watchlist" }] : []),
     { name: "Portfolio", path: "/portfolio" },
+    { name: "Blogs", path: "/blogs" },
   ]
 
   return (
