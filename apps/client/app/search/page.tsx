@@ -50,7 +50,7 @@ export default function SearchPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <section className="relative mt-[64px] px-4 sm:px-6 lg:px-8 py-8">
+      <section className="relative px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
           
           

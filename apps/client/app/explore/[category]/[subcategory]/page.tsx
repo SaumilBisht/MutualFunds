@@ -104,7 +104,7 @@ export default function SubcategoryPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       
-      <section className="relative mt-[64px] px-4 sm:px-6 lg:px-8 py-8 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+      <section className="relative px-4 sm:px-6 lg:px-8 py-8 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">

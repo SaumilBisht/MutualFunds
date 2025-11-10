@@ -22,7 +22,7 @@ export default function PaymentPage() {
   };
 
   return (
-    <main className="mt-[64px] py-6 px-4 md:px-8 max-w-4xl mx-auto">
+    <main className="py-6 px-4 md:px-8 max-w-4xl mx-auto">
       <Link href={`/dashboard/${schemeCode}`} className="text-blue-600 hover:underline inline-block mb-6">
         ← Back to scheme
       </Link>

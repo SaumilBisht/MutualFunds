@@ -131,14 +131,14 @@ export default function SchemeDetails() {
 
   if (loading)
     return (
-      <div className="mt-[64px] p-6 text-gray-500">
+      <div className="p-6 text-gray-500">
         Loading scheme details...
       </div>
     )
 
   if (error)
     return (
-      <div className="mt-[64px] p-6">
+      <div className="p-6">
         <p className="text-red-500 mb-4">{error}</p>
         <Link href="/explore" className="text-blue-600 hover:underline">
           ← Back to all schemes
@@ -148,7 +148,7 @@ export default function SchemeDetails() {
 
   if (!scheme)
     return (
-      <div className="mt-[64px] p-6">
+      <div className="p-6">
         <p className="text-gray-500 mb-4">Scheme details not available.</p>
         <Link href="/dashboard" className="text-blue-600 hover:underline">
           ← Back to all schemes

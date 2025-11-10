@@ -117,7 +117,7 @@ export default function ExplorePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       
-      <section className="relative mt-[64px] px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+      <section className="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
