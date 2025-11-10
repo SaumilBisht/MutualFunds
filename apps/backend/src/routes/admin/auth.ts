@@ -75,14 +75,31 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/register', async (req: Request, res: Response) => {
+// Only SUPER_ADMIN can create new admins
+router.post('/create-admin', verifyAdminToken, async (req: AdminAuthRequest, res: Response) => {
   try {
+    
+    if (req.admin!.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Only SUPER_ADMIN can create new admins' 
+      });
+    }
+
     const { email, password, name, role = 'ADMIN' } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ 
         success: false, 
         error: 'Email, password, and name are required' 
+      });
+    }
+
+    // Validate role
+    if (!['ADMIN', 'EDITOR'].includes(role)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid role. Only ADMIN or EDITOR allowed' 
       });
     }
 
@@ -111,6 +128,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
+      message: 'Admin created successfully',
       admin: {
         id: admin.id,
         email: admin.email,
@@ -119,10 +137,10 @@ router.post('/register', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('Admin registration error:', error);
+    console.error('Create admin error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Registration failed' 
+      error: 'Failed to create admin' 
     });
   }
 });

@@ -8,17 +8,24 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
     "@repo/typescript-config": "workspace:*",
-    "prisma": "^6.17.1"
+    "prisma": "^6.17.1",
+    "bcryptjs": "^2.4.3"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^24.7.2"
+    "@types/bcryptjs": "^3.0.0",
+    "@types/node": "^24.7.2",
+    "tsx": "^4.7.0"
   }
 }

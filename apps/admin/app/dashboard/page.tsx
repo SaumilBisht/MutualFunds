@@ -6,7 +6,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, FileText, Eye, PlusCircle, LogOut, Loader2 } from 'lucide-react';
+import { LayoutDashboard, FileText, Eye, PlusCircle, LogOut, Loader2, UserPlus } from 'lucide-react';
 
 interface Admin {
   id: string;
@@ -184,6 +184,31 @@ export default function AdminDashboard() {
             </Link>
           </Card>
         </div>
+
+        {/* SUPER_ADMIN Only: Add Admin Button */}
+        {admin?.role === 'SUPER_ADMIN' && (
+          <div className="mt-8">
+            <Card className="border-2 border-blue-200 bg-blue-50/50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <UserPlus className="w-5 h-5 text-blue-600" />
+                  Super Admin Controls
+                </CardTitle>
+                <CardDescription>Manage admin users and permissions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => router.push('/admins/create')}
+                  className="w-full md:w-auto"
+                  size="lg"
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Add New Admin
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
     </div>
   );
