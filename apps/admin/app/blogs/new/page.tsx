@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import axios from 'axios';
 
 interface BlogFormData {
   title: string;
@@ -49,13 +50,10 @@ export default function BlogEditorPage() {
 
   const fetchBlog = async (token: string, id: string) => {
     try {
-      const response = await fetch(`http://localhost:3002/api/admin/blogs/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      const { data } = await axios.get(`http://localhost:3002/api/admin/blogs/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch blog');
-
-      const data = await response.json();
       setFormData(data.data);
       setAutoSlug(false);
     } catch (error) {
@@ -113,23 +111,18 @@ export default function BlogEditorPage() {
         ? `http://localhost:3002/api/admin/blogs/${blogId}`
         : 'http://localhost:3002/api/admin/blogs';
 
-      const response = await fetch(url, {
-        method: isEdit ? 'PUT' : 'POST',
+      const method = isEdit ? 'put' : 'post';
+
+      await axios[method](url, { ...formData, status }, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...formData, status }),
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save blog');
-      }
 
       router.push('/blogs');
     } catch (error: any) {
-      alert(error.message || 'Failed to save blog');
+      alert(error.response?.data?.error || error.message || 'Failed to save blog');
     } finally {
       setLoading(false);
     }

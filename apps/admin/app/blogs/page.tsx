@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import axios from 'axios';
 
 interface Blog {
   id: string;
@@ -37,17 +38,15 @@ export default function BlogsListPage() {
   const fetchBlogs = async (token: string) => {
     setLoading(true);
     try {
-      const url = filter === 'all'
-        ? `http://localhost:3002/api/admin/blogs?page=${page}`
-        : `http://localhost:3002/api/admin/blogs?status=${filter}&page=${page}`;
+      const params: any = { page };
+      if (filter !== 'all') {
+        params.status = filter;
+      }
 
-      const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      const { data } = await axios.get('http://localhost:3002/api/admin/blogs', {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) throw new Error('Failed to fetch blogs');
-
-      const data = await response.json();
       setBlogs(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error) {
@@ -64,13 +63,9 @@ export default function BlogsListPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:3002/api/admin/blogs/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
+      await axios.delete(`http://localhost:3002/api/admin/blogs/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) throw new Error('Failed to delete blog');
-
       fetchBlogs(token);
     } catch (error) {
       alert('Failed to delete blog');

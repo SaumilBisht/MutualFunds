@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import axios from 'axios';
 
 interface Admin {
   id: string;
@@ -36,17 +37,9 @@ export default function AdminDashboard() {
 
   const fetchAdminData = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3002/api/admin/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const { data } = await axios.get('http://localhost:3002/api/admin/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) {
-        throw new Error('Unauthorized');
-      }
-
-      const data = await response.json();
       setAdmin(data.data);
     } catch (error) {
       localStorage.removeItem('adminToken');
@@ -58,28 +51,17 @@ export default function AdminDashboard() {
 
   const fetchStats = async (token: string) => {
     try {
-      const [allBlogs, publishedBlogs, draftBlogs] = await Promise.all([
-        fetch('http://localhost:3002/api/admin/blogs?limit=1', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        }),
-        fetch('http://localhost:3002/api/admin/blogs?status=PUBLISHED&limit=1', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        }),
-        fetch('http://localhost:3002/api/admin/blogs?status=DRAFT&limit=1', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        }),
-      ]);
-
+      const headers = { Authorization: `Bearer ${token}` };
       const [allData, publishedData, draftData] = await Promise.all([
-        allBlogs.json(),
-        publishedBlogs.json(),
-        draftBlogs.json(),
+        axios.get('http://localhost:3002/api/admin/blogs?limit=1', { headers }),
+        axios.get('http://localhost:3002/api/admin/blogs?status=PUBLISHED&limit=1', { headers }),
+        axios.get('http://localhost:3002/api/admin/blogs?status=DRAFT&limit=1', { headers }),
       ]);
 
       setStats({
-        total: allData.meta?.total || 0,
-        published: publishedData.meta?.total || 0,
-        draft: draftData.meta?.total || 0,
+        total: allData.data.meta?.total || 0,
+        published: publishedData.data.meta?.total || 0,
+        draft: draftData.data.meta?.total || 0,
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
