@@ -78,6 +78,55 @@ router.get('/', async (req: AdminAuthRequest, res: Response) => {
   }
 });
 
+router.get('/slug/:slug', async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+
+    const blog = await prisma.blog.findUnique({
+      where: { slug },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!blog) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Blog not found' 
+      });
+    }
+
+    if (blog.status !== 'PUBLISHED') {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Blog not found' 
+      });
+    }
+
+    // Increment view count
+    await prisma.blog.update({
+      where: { slug },
+      data: { views: { increment: 1 } },
+    });
+
+    res.json({
+      success: true,
+      data: { ...blog, views: blog.views + 1 },
+    });
+  } catch (error: any) {
+    console.error('Get blog by slug error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch blog' 
+    });
+  }
+});
 
 router.get('/:id', verifyAdminToken, async (req: AdminAuthRequest, res: Response) => {
   try {

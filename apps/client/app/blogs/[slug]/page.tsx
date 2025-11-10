@@ -40,20 +40,19 @@ export default function BlogDetailPage() {
 
   const fetchBlog = async () => {
     try {
-      // Fetch all published blogs
-      const { data } = await axios.get('http://localhost:3002/api/admin/blogs?status=PUBLISHED');
+      // Fetch the blog by slug (this will increment view count)
+      const { data: blogResponse } = await axios.get(`http://localhost:3002/api/admin/blogs/slug/${slug}`);
       
-      // Find the blog with matching slug
-      const foundBlog = data.data.find((b: Blog) => b.slug === slug);
-      
-      if (foundBlog) {
-        setBlog(foundBlog);
+      if (blogResponse.success) {
+        setBlog(blogResponse.data);
         
-        // Get related blogs (same tags)
-        const related = data.data
+        // Fetch related blogs
+        const { data: allBlogsResponse } = await axios.get('http://localhost:3002/api/admin/blogs?status=PUBLISHED');
+        
+        const related = allBlogsResponse.data
           .filter((b: Blog) => 
-            b.id !== foundBlog.id && 
-            b.tags.some(tag => foundBlog.tags.includes(tag))
+            b.id !== blogResponse.data.id && 
+            b.tags.some(tag => blogResponse.data.tags.includes(tag))
           )
           .slice(0, 3);
         setRelatedBlogs(related);

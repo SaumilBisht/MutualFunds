@@ -195,73 +195,96 @@ export default function BlogsPage() {
         {/* Blog Grid */}
         {filteredBlogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBlogs.map((blog) => (
-              <div
-                key={blog.id}
-                onClick={() => handleBlogClick(blog.slug)}
-                className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-gray-200 group"
-              >
-                {/* Cover Image */}
-                {blog.coverImage && (
-                  <div className="h-48 overflow-hidden bg-gray-100">
-                    <img
-                      src={blog.coverImage}
-                      alt={blog.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.currentTarget.src = '';
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className="p-5">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {blog.title}
-                  </h3>
-                  
-                  {blog.excerpt && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {blog.excerpt}
-                    </p>
+            {filteredBlogs.map((blog) => {
+              const isPopular = blog.views >= 100;
+              const isTrending = blog.views >= 50;
+              
+              return (
+                <div
+                  key={blog.id}
+                  onClick={() => handleBlogClick(blog.slug)}
+                  className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-gray-200 group relative"
+                >
+                  {/* Trending/Popular Badge */}
+                  {isPopular && (
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold rounded-full shadow-lg">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      Popular
+                    </div>
                   )}
-
-                  {/* Tags */}
-                  {blog.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {blog.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200"
-                        >
-                          <Tag className="h-3 w-3" />
-                          {tag}
-                        </span>
-                      ))}
-                      {blog.tags.length > 3 && (
-                        <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                          +{blog.tags.length - 3}
-                        </span>
-                      )}
+                  {!isPopular && isTrending && (
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold rounded-full shadow-lg">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
+                      </svg>
+                      Trending
                     </div>
                   )}
 
-                  {/* Meta Info */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {formatDate(blog.publishedAt || blog.createdAt)}
+                  {/* Cover Image */}
+                  {blog.coverImage && (
+                    <div className="h-48 overflow-hidden bg-gray-100">
+                      <img
+                        src={blog.coverImage}
+                        alt={blog.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.src = '';
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-3.5 w-3.5" />
-                      {blog.views || 0} views
+                  )}
+
+                  {/* Content */}
+                  <div className="p-5">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {blog.title}
+                    </h3>
+                    
+                    {blog.excerpt && (
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                        {blog.excerpt}
+                      </p>
+                    )}
+
+                    {/* Tags */}
+                    {blog.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {blog.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200"
+                          >
+                            <Tag className="h-3 w-3" />
+                            {tag}
+                          </span>
+                        ))}
+                        {blog.tags.length > 3 && (
+                          <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                            +{blog.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Meta Info */}
+                    <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {formatDate(blog.publishedAt || blog.createdAt)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        {blog.views || 0} views
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-16">
