@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
 import { ArrowLeft, Calendar, Eye, Tag, Share2, Loader2, BookOpen } from 'lucide-react';
@@ -31,11 +31,23 @@ export default function BlogDetailPage() {
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [relatedBlogs, setRelatedBlogs] = useState<Blog[]>([]);
+  
+  // Use ref to track if we've already fetched the blog
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
-    if (slug) {
+    // Only fetch if we haven't already fetched for this slug
+    if (slug && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchBlog();
     }
+    
+    // Cleanup function to reset ref when slug changes
+    return () => {
+      if (params.slug !== slug) {
+        hasFetchedRef.current = false;
+      }
+    };
   }, [slug]);
 
   const fetchBlog = async () => {
