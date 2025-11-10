@@ -11,6 +11,7 @@ interface Blog {
   slug: string;
   excerpt: string;
   coverImage: string;
+  content: string;
   tags: string[];
   status: string;
   views: number;
@@ -56,12 +57,21 @@ export default function BlogsPage() {
   const filterBlogs = () => {
     let filtered = blogs;
 
-    // Filter by search query (title or excerpt)
+    // Filter by search query with flexible matching
     if (searchQuery) {
-      filtered = filtered.filter(blog =>
-        blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/);
+      
+      filtered = filtered.filter(blog => {
+        const searchableText = [
+          blog.title,
+          blog.excerpt,
+          blog.content,
+          ...blog.tags,
+        ].join(' ').toLowerCase();
+        
+        // Check if ALL search terms exist anywhere in the searchable text
+        return searchTerms.every(term => searchableText.includes(term));
+      });
     }
 
     // Filter by selected tag
@@ -120,7 +130,7 @@ export default function BlogsPage() {
               </div>
               <input
                 type="text"
-                placeholder="Search blogs by title or content..."
+                placeholder="Search blogs by any keyword (e.g., 'devops master' finds 'Mastering DevOps')..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm text-sm"
