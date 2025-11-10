@@ -12,6 +12,8 @@ import paymentRouter from "./routes/payment.js";
 import bankRouter from "./routes/bank.js";
 import watchlistRouter from "./routes/watchlist.js";
 import { scheduleAmfiFetch } from "./services/amfiService.js";
+import { adminAuthRouter } from "./routes/admin/auth.js";
+import { adminBlogRouter } from "./routes/admin/blogs.js";
 
 const app=express();
 app.use(express.json());
@@ -39,6 +41,9 @@ app.use("/mf", mfRoutes);
 app.use("/payments", paymentRouter);
 app.use("/bank", bankRouter);
 app.use("/api/watchlist", watchlistRouter);
+
+app.use('/api/admin/auth', adminAuthRouter);
+app.use('/api/admin/blogs', adminBlogRouter);
 
 console.log("Initializing AMFI service...");
 scheduleAmfiFetch();

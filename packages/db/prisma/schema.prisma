@@ -318,3 +318,50 @@ enum OccupationType {
   HOUSEWIFE
   OTHER
 }
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  name      String
+  role      AdminRole @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  blogs     Blog[]
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+model Blog {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  excerpt     String?
+  coverImage  String?     // URL or S3 path
+  content     String      @db.Text // Markdown content
+  tags        String[]    // Array of tags
+  status      BlogStatus  @default(DRAFT)
+  
+  authorId    String
+  author      Admin       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  views       Int         @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
