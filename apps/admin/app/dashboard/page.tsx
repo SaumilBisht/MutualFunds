@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LayoutDashboard, FileText, Eye, PlusCircle, LogOut, Loader2 } from 'lucide-react';
 
 interface Admin {
   id: string;
@@ -73,85 +76,113 @@ export default function AdminDashboard() {
     router.push('/login');
   };
 
-  if (loading) 
-    {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      
-      <header className="border-b-2 border-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <header className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <LayoutDashboard className="w-6 h-6 text-primary" />
+            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm">{admin?.name} ({admin?.role})</span>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-white text-black font-bold hover:bg-gray-200 transition-colors"
-            >
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">{admin?.name}</p>
+              <p className="text-xs text-muted-foreground">{admin?.role}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
               Logout
-            </button>
+            </Button>
           </div>
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-     
+        {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Welcome back, {admin?.name}!</h2>
-          <p className="text-gray-400">Here's what's happening with your blog today.</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {admin?.name}!</h2>
+          <p className="text-muted-foreground">Here's what's happening with your blog today.</p>
         </div>
 
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white text-black p-6 border-2 border-white">
-            <h3 className="text-sm font-bold text-gray-600 mb-2">TOTAL BLOGS</h3>
-            <p className="text-4xl font-bold">{stats.total}</p>
-          </div>
-          <div className="bg-white text-black p-6 border-2 border-white">
-            <h3 className="text-sm font-bold text-gray-600 mb-2">PUBLISHED</h3>
-            <p className="text-4xl font-bold">{stats.published}</p>
-          </div>
-          <div className="bg-white text-black p-6 border-2 border-white">
-            <h3 className="text-sm font-bold text-gray-600 mb-2">DRAFTS</h3>
-            <p className="text-4xl font-bold">{stats.draft}</p>
-          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Blogs</CardTitle>
+              <FileText className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+              <p className="text-xs text-muted-foreground mt-1">All blog posts</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Published</CardTitle>
+              <Eye className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">{stats.published}</div>
+              <p className="text-xs text-muted-foreground mt-1">Live on website</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Drafts</CardTitle>
+              <FileText className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-600">{stats.draft}</div>
+              <p className="text-xs text-muted-foreground mt-1">Work in progress</p>
+            </CardContent>
+          </Card>
         </div>
 
+        {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Link
-            href="/blogs/new"
-            className="bg-white text-black p-8 border-2 border-white hover:bg-black hover:text-white hover:border-white transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl font-bold mb-2">Create New Blog</h3>
-                <p className="text-gray-600 group-hover:text-gray-400">Write and publish a new blog post</p>
-              </div>
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-          </Link>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Link href="/blogs/new">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors">
+                      Create New Blog
+                    </CardTitle>
+                    <CardDescription>Write and publish a new blog post</CardDescription>
+                  </div>
+                  <PlusCircle className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                </div>
+              </CardHeader>
+            </Link>
+          </Card>
 
-          <Link
-            href="/blogs"
-            className="bg-white text-black p-8 border-2 border-white hover:bg-black hover:text-white hover:border-white transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl font-bold mb-2">Manage Blogs</h3>
-                <p className="text-gray-600 group-hover:text-gray-400">View, edit, and delete existing blogs</p>
-              </div>
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-          </Link>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Link href="/blogs">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl mb-2 group-hover:text-primary transition-colors">
+                      Manage Blogs
+                    </CardTitle>
+                    <CardDescription>View, edit, and delete existing blogs</CardDescription>
+                  </div>
+                  <FileText className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                </div>
+              </CardHeader>
+            </Link>
+          </Card>
         </div>
       </main>
     </div>

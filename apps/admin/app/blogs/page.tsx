@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Edit, Trash2, Eye, PlusCircle, FileText, Loader2, Clock } from 'lucide-react';
 
 interface Blog {
   id: string;
@@ -81,141 +84,173 @@ export default function BlogsListPage() {
     });
   };
 
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'PUBLISHED':
+        return 'bg-green-100 text-green-700 border-green-300';
+      case 'DRAFT':
+        return 'bg-orange-100 text-orange-700 border-orange-300';
+      case 'ARCHIVED':
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white">
-      
-      <header className="border-b-2 border-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <header className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-gray-400 hover:text-white">
-              ← Back
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
             </Link>
-            <h1 className="text-2xl font-bold">Manage Blogs</h1>
+            <div className="flex items-center gap-2">
+              <FileText className="w-6 h-6 text-primary" />
+              <h1 className="text-2xl font-bold text-gray-900">Manage Blogs</h1>
+            </div>
           </div>
-          <Link
-            href="/blogs/new"
-            className="px-6 py-2 bg-white text-black font-bold hover:bg-gray-200 transition-colors"
-          >
-            + New Blog
+          <Link href="/blogs/new">
+            <Button>
+              <PlusCircle className="w-4 h-4 mr-2" />
+              New Blog
+            </Button>
           </Link>
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        
-        <div className="flex gap-4 mb-6">
-          <button
+        {/* Filters */}
+        <div className="flex gap-3 mb-6">
+          <Button
+            variant={filter === 'all' ? 'default' : 'outline'}
             onClick={() => { setFilter('all'); setPage(1); }}
-            className={`px-4 py-2 font-bold border-2 transition-colors ${
-              filter === 'all'
-                ? 'bg-white text-black border-white'
-                : 'bg-black text-white border-white hover:bg-white hover:text-black'
-            }`}
           >
-            All
-          </button>
-          <button
+            All Blogs
+          </Button>
+          <Button
+            variant={filter === 'PUBLISHED' ? 'default' : 'outline'}
             onClick={() => { setFilter('PUBLISHED'); setPage(1); }}
-            className={`px-4 py-2 font-bold border-2 transition-colors ${
-              filter === 'PUBLISHED'
-                ? 'bg-white text-black border-white'
-                : 'bg-black text-white border-white hover:bg-white hover:text-black'
-            }`}
           >
             Published
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={filter === 'DRAFT' ? 'default' : 'outline'}
             onClick={() => { setFilter('DRAFT'); setPage(1); }}
-            className={`px-4 py-2 font-bold border-2 transition-colors ${
-              filter === 'DRAFT'
-                ? 'bg-white text-black border-white'
-                : 'bg-black text-white border-white hover:bg-white hover:text-black'
-            }`}
           >
             Drafts
-          </button>
+          </Button>
         </div>
 
-        {loading && <div className="text-center py-8">Loading blogs...</div>}
-
-        {!loading && blogs.length === 0 && (
-          <div className="text-center py-12 border-2 border-white">
-            <p className="text-xl mb-4">No blogs found</p>
-            <Link
-              href="/blogs/new"
-              className="inline-block px-6 py-3 bg-white text-black font-bold hover:bg-gray-200"
-            >
-              Create Your First Blog
-            </Link>
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         )}
 
+        {/* Empty State */}
+        {!loading && blogs.length === 0 && (
+          <Card className="text-center py-12">
+            <CardContent className="pt-6">
+              <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No blogs found</h3>
+              <p className="text-muted-foreground mb-6">
+                {filter === 'all' 
+                  ? "Get started by creating your first blog post"
+                  : `No ${filter.toLowerCase()} blogs yet`
+                }
+              </p>
+              <Link href="/blogs/new">
+                <Button>
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Create Your First Blog
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Blog List */}
         {!loading && blogs.length > 0 && (
           <div className="space-y-4">
             {blogs.map((blog) => (
-              <div key={blog.id} className="border-2 border-white p-6 hover:bg-white hover:text-black transition-colors group">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-xl font-bold">{blog.title}</h2>
-                      <span className={`px-2 py-1 text-xs font-bold border ${
-                        blog.status === 'PUBLISHED'
-                          ? 'bg-white text-black border-black'
-                          : 'bg-black text-white border-white group-hover:bg-white group-hover:text-black group-hover:border-black'
-                      }`}>
-                        {blog.status}
-                      </span>
+              <Card key={blog.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <CardTitle className="text-xl">{blog.title}</CardTitle>
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusVariant(blog.status)}`}>
+                          {blog.status}
+                        </span>
+                      </div>
+                      <CardDescription className="flex items-center gap-4 text-sm">
+                        <span className="flex items-center gap-1">
+                          <FileText className="w-4 h-4" />
+                          /{blog.slug}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {formatDate(blog.publishedAt)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-4 h-4" />
+                          {blog.views} views
+                        </span>
+                      </CardDescription>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        By {blog.author.name}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-400 group-hover:text-gray-600 mb-2">
-                      /{blog.slug}
-                    </p>
-                    <div className="flex gap-4 text-sm text-gray-400 group-hover:text-gray-600">
-                      <span>By {blog.author.name}</span>
-                      <span>•</span>
-                      <span>{formatDate(blog.publishedAt)}</span>
-                      <span>•</span>
-                      <span>{blog.views} views</span>
+                    <div className="flex gap-2">
+                      <Link href={`/blogs/${blog.id}/edit`}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteBlog(blog.id)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Link
-                      href={`/blogs/${blog.id}/edit`}
-                      className="px-4 py-2 border-2 border-black group-hover:border-white bg-white text-black group-hover:bg-black group-hover:text-white font-bold hover:opacity-80 transition-colors"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => deleteBlog(blog.id)}
-                      className="px-4 py-2 border-2 border-black group-hover:border-white bg-black text-white group-hover:bg-white group-hover:text-black font-bold hover:opacity-80 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </CardHeader>
+              </Card>
             ))}
           </div>
         )}
 
+        {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
-            <button
+          <div className="flex justify-center items-center gap-2 mt-8">
+            <Button
+              variant="outline"
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="px-4 py-2 border-2 border-white font-bold disabled:opacity-30 hover:bg-white hover:text-black transition-colors"
             >
               Previous
-            </button>
-            <span className="px-4 py-2 border-2 border-white">
+            </Button>
+            <span className="px-4 py-2 text-sm text-muted-foreground">
               Page {page} of {totalPages}
             </span>
-            <button
+            <Button
+              variant="outline"
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
-              className="px-4 py-2 border-2 border-white font-bold disabled:opacity-30 hover:bg-white hover:text-black transition-colors"
             >
               Next
-            </button>
+            </Button>
           </div>
         )}
       </main>
