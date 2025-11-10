@@ -22,7 +22,7 @@ export default function AdminLogin() {
       const { data } = await axios.post('http://localhost:3002/api/admin/auth/login', formData);
 
       // Store token in localStorage
-      localStorage.setItem('adminToken', data.data.token);
+      localStorage.setItem('adminToken', data.token);
 
       // Redirect to dashboard
       router.push('/dashboard');

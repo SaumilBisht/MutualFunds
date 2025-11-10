@@ -40,7 +40,7 @@ export default function AdminDashboard() {
       const { data } = await axios.get('http://localhost:3002/api/admin/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAdmin(data.data);
+      setAdmin(data.admin);
     } catch (error) {
       localStorage.removeItem('adminToken');
       router.push('/login');
