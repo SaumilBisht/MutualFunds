@@ -28,30 +28,30 @@ export default function Dashboard() {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
             <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-gray-900">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
                 Explore the World of{" "}
                 <span className="relative inline-block">
-                  <span className="relative z-10 text-blue-600">
+                  <span className="relative z-10 text-[#010D3E]">
                     Mutual Funds
                   </span>
                   <span className="absolute -inset-1 bg-blue-200 blur-lg opacity-30 rounded-lg"></span>
                 </span>
               </h1>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <motion.p 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-700 leading-relaxed"
+                  className="text-lg sm:text-xl lg:text-2xl font-medium text-blue-600 leading-relaxed"
                 >
-                  Your Gateway to Financial <ContainerTextFlip words={words} />
+                  Your Gateway to Financial <span className="text-blue-700 font-semibold"><ContainerTextFlip words={words} /></span>
                 </motion.p>
                 <motion.p 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
-                  className="text-lg sm:text-xl lg:text-2xl font-medium text-gray-600 leading-relaxed"
+                  className="text-base sm:text-lg lg:text-xl text-gray-600 leading-relaxed"
                 >
                   Join the Journey and Reap the Rewards
                 </motion.p>
