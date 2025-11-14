@@ -106,7 +106,7 @@ export default function BlogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-[92px]">
       {/* Hero Section */}
       <div className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-6 py-12 max-w-6xl">

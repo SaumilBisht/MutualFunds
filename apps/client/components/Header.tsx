@@ -128,8 +128,8 @@ export default function Header() {
   ]
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-5 px-4">
-      <header className="w-full max-w-[1200px] bg-white shadow-lg rounded-xl border border-gray-200">
+    <div className="fixed top-0 left-0 w-full z-50 flex justify-center px-4 pt-5">
+      <header className="w-full max-w-[1200px] bg-white/60 backdrop-blur-md shadow-lg rounded-xl border border-gray-200/50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             

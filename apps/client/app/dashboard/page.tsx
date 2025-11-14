@@ -8,7 +8,7 @@ export default async function Dashboard() {
   const user = session?.user
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-[40px]">
 
       <section className="relative min-h-[50vh] px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 flex items-center">
         <div className="max-w-7xl mx-auto w-full">

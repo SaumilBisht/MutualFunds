@@ -16,7 +16,6 @@ interface Fund {
 
 interface CategoryData {
   title: string
-  icon: string
   slug: string
   description: string
   subcategories: Array<{
@@ -36,7 +35,6 @@ export default function ExplorePage() {
   const categoryConfig = [
     {
       title: "Equity Funds",
-      icon: "📊",
       slug: "equity",
       description: "Invest in stocks for long-term wealth creation",
       subcategories: [
@@ -48,7 +46,6 @@ export default function ExplorePage() {
     },
     {
       title: "Debt Funds",
-      icon: "📈",
       slug: "debt",
       description: "Fixed income securities for stable returns",
       subcategories: [
@@ -59,7 +56,6 @@ export default function ExplorePage() {
     },
     {
       title: "Hybrid Funds",
-      icon: "🔄",
       slug: "hybrid",
       description: "Balanced mix of equity and debt",
       subcategories: [
@@ -70,7 +66,6 @@ export default function ExplorePage() {
     },
     {
       title: "Index Funds",
-      icon: "📉",
       slug: "index",
       description: "Track market indices passively",
       subcategories: [
@@ -115,141 +110,168 @@ export default function ExplorePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      
-      <section className="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+    <main className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="px-4 sm:px-6 lg:px-8 pt-32 pb-12 sm:pb-16 bg-[radial-gradient(ellipse_200%_100%_at_bottom_left,#183EC2,#EAEEFE_100%)]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Explore Mutual Funds by{" "}
-              <span className="text-blue-600">
-                Category
-              </span>
+          <div className="text-center mb-10">
+            <div className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm border border-black rounded-full text-sm font-medium text-black mb-6">
+              Investment Categories
+            </div>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight text-black">
+              Explore Mutual Funds
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Discover the perfect mutual funds for your investment goals across different categories
+            <p className="text-xl text-black/80 max-w-3xl mx-auto leading-relaxed">
+              Browse through our curated collection of mutual funds across different categories. Find the perfect investment match for your financial goals.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-12">
             {categoryConfig.map((cat) => (
               <button
                 key={cat.slug}
                 onClick={() => handleCategoryClick(cat.slug)}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-full hover:border-blue-400 hover:shadow-md transition-all text-sm font-medium text-gray-700 hover:text-blue-600"
+                className="group px-6 py-3 bg-black backdrop-blur-sm border rounded-xl  hover:border-black transition-all text-sm font-medium text-white  flex items-center gap-2 border-black hover:text-black"
               >
-                <span className="mr-2">{cat.icon}</span>
-                {cat.title}
+                <span>{cat.title}</span>
+                <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Loading State */}
       {loading && (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="flex items-center justify-center py-32">
+          <div className="text-center">
+            <div className="animate-spin h-16 w-16 border-4 border-gray-200 border-t-blue-600 rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-500 font-medium">Loading categories...</p>
+          </div>
         </div>
       )}
 
-      {!loading && categories.map((category) => (
-        <section key={category.slug} className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      {/* Categories Section */}
+      {!loading && categories.map((category, idx) => (
+        <section key={category.slug} className={`px-4 sm:px-6 lg:px-8 py-12 sm:py-16 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
           <div className="max-w-7xl mx-auto">
             
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
-                  <span className="text-4xl">{category.icon}</span>
-                  {category.title}
-                </h2>
-                <p className="text-gray-600 mt-1">{category.description}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {category.totalCount}+ funds available
-                </p>
+            {/* Category Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 pb-6 border-b border-gray-200">
+              <div className="flex items-start gap-4 mb-4 sm:mb-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                  {category.title.charAt(0)}
+                </div>
+                <div>
+                  <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+                    {category.title}
+                  </h2>
+                  <p className="text-gray-600 text-lg">{category.description}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                      {category.totalCount}+ Funds
+                    </span>
+                  </div>
+                </div>
               </div>
               <button
                 onClick={() => handleCategoryClick(category.slug)}
-                className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 font-medium transition-colors group"
+                className="group flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-blue-600 font-medium transition-all shadow-md hover:shadow-xl"
               >
-                <span className="hidden sm:inline">View All</span>
+                <span>View All Funds</span>
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-              {category.subcategories.map((sub) => (
-                <button
-                  key={sub.slug}
-                  onClick={() => router.push(`/explore/${category.slug}/${sub.slug}`)}
-                  className="bg-white rounded-xl p-4 border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all text-left group"
-                >
-                  <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
-                    {sub.name}
-                  </h3>
-                  <p className="text-xs text-gray-500">{sub.description}</p>
-                </button>
-              ))}
+            {/* Subcategories Grid */}
+            <div className="mb-10">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Browse by Type</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {category.subcategories.map((sub) => (
+                  <button
+                    key={sub.slug}
+                    onClick={() => router.push(`/explore/${category.slug}/${sub.slug}`)}
+                    className="group bg-white rounded-xl p-5 border-2 border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all text-left"
+                  >
+                    <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2 text-base">
+                      {sub.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">{sub.description}</p>
+                    <div className="mt-3 flex items-center text-blue-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span>Explore</span>
+                      <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
+            {/* Top Funds Carousel */}
             <div className="relative">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Top Performing Funds</h3>
               <div className="overflow-x-auto pb-4 hide-scrollbar">
-                <div className="flex gap-4">
+                <div className="flex gap-5">
                   {category.topFunds.map((fund) => (
                     <div
                       key={fund.schemeCode}
                       onClick={() => handleFundClick(fund.schemeCode)}
-                      className="min-w-[280px] sm:min-w-[320px] bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-400 hover:shadow-xl transition-all cursor-pointer group flex-shrink-0"
+                      className="min-w-[300px] sm:min-w-[340px] bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-blue-600 hover:shadow-2xl transition-all cursor-pointer group flex-shrink-0"
                     >
                       
-                      <div className="flex items-start gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <div className="flex items-start gap-4 mb-5">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden border border-gray-300">
                           {fund.enrichment?.logo ? (
                             <img
                               src={fund.enrichment.logo}
                               alt={fund.enrichment.amcName || "Fund"}
-                              className="w-full h-full object-contain p-1"
+                              className="w-full h-full object-contain p-1.5"
                             />
                           ) : (
                             <span className="text-2xl">💼</span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 mb-1">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                             {fund.enrichment?.amcName || "Mutual Fund"}
                           </p>
-                          <h4 className="font-semibold text-sm text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                          <h4 className="font-bold text-sm text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
                             {fund.schemeName}
                           </h4>
                         </div>
                       </div>
 
-                      {/* NAV */}
+                      {/* NAV Display */}
                       {fund.netAssetValue && (
-                        <div className="pt-3 border-t border-gray-200">
-                          <p className="text-xs text-gray-500 mb-1">Current NAV</p>
-                          <p className="text-xl font-bold text-gray-900">
+                        <div className="pt-4 border-t-2 border-gray-100">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Current NAV</p>
+                          <p className="text-2xl font-bold text-gray-900">
                             ₹{fund.netAssetValue}
                           </p>
                         </div>
                       )}
 
-                      <button className="mt-4 w-full py-2 bg-blue-50 text-blue-600 rounded-lg font-medium text-sm hover:bg-blue-100 transition-colors">
-                        View Details →
+                      <button className="mt-5 w-full py-3 bg-gray-900 text-white rounded-xl font-semibold text-sm hover:bg-blue-600 transition-all group-hover:shadow-lg">
+                        View Details
                       </button>
                     </div>
                   ))}
 
+                  {/* View All Card */}
                   <button
                     onClick={() => handleCategoryClick(category.slug)}
-                    className="min-w-[150px] bg-blue-600 rounded-xl p-5 flex flex-col items-center justify-center text-white hover:bg-blue-700 hover:shadow-xl transition-all flex-shrink-0"
+                    className="min-w-[180px] bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 flex flex-col items-center justify-center text-white hover:from-blue-700 hover:to-blue-900 hover:shadow-2xl transition-all flex-shrink-0 border-2 border-blue-700"
                   >
-                    <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
-                    <span className="font-semibold">View All</span>
-                    <span className="text-sm opacity-90">{category.totalCount}+ Funds</span>
+                    <span className="font-bold text-lg mb-1">View All</span>
+                    <span className="text-sm text-blue-200">{category.totalCount}+ Funds</span>
                   </button>
                 </div>
               </div>
