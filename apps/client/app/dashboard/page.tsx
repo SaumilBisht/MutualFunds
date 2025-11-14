@@ -31,7 +31,7 @@ export default function Dashboard() {
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
                 Explore the World of{" "}
                 <span className="relative inline-block">
-                  <span className="relative z-10 text-[#010D3E]">
+                  <span className="relative z-10 bg-gradient-to-b from-gray-900 via-[#001E80] to-[#0038FF] text-transparent bg-clip-text">
                     Mutual Funds
                   </span>
                   <span className="absolute -inset-1 bg-blue-200 blur-lg opacity-30 rounded-lg"></span>
