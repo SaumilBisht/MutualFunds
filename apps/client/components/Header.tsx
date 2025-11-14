@@ -162,7 +162,7 @@ export default function Header() {
             </div>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden lg:flex flex-1 max-w-xl mx-8" ref={searchRef}>
+            <div className="hidden lg:flex flex-1 max-w-2xl mx-8" ref={searchRef}>
               <form onSubmit={handleSearchSubmit} className="relative w-full">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -172,7 +172,7 @@ export default function Header() {
                   </div>
                   <input
                     type="text"
-                    placeholder="Search mutual funds... (Press Enter for all results)"
+                    placeholder="Search mutual funds"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => searchResults.length > 0 && setShowResults(true)}
@@ -255,13 +255,17 @@ export default function Header() {
               {user ? (
                 <>
                   <div className="hidden sm:flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                        {user.name?.charAt(0).toUpperCase()}
+                    <div className="relative group">
+                      <div className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                          {user.name?.charAt(0).toUpperCase()}
+                        </div>
                       </div>
-                      <span className="text-sm font-medium text-gray-700 max-w-[120px] truncate">
+                      {/* Tooltip on hover */}
+                      <div className="absolute right-0 top-full mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
                         {user.name}
-                      </span>
+                        <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                      </div>
                     </div>
                     <button
                       onClick={handleSignOut}
