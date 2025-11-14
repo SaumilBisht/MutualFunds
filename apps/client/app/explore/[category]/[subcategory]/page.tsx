@@ -294,7 +294,7 @@ export default function SubcategoryPage() {
                     </div>
 
                     {/* View Button */}
-                    <button className="mt-5 w-full py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg">
+                    <button className="mt-5 w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg">
                       <span>View Details</span>
                       <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -368,7 +368,7 @@ export default function SubcategoryPage() {
                           </td>
                           <td className="px-6 py-5 text-right">
                             <button 
-                              className="px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-sm hover:bg-blue-600 transition-all"
+                              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700   transition-all"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleFundClick(fund.schemeCode)

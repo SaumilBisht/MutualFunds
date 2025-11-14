@@ -178,7 +178,7 @@ export default function ExplorePage() {
               </div>
               <button
                 onClick={() => handleCategoryClick(category.slug)}
-                className="group flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-blue-600 font-medium transition-all shadow-md hover:shadow-xl"
+                className="group flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-600 font-medium transition-all shadow-md hover:shadow-xl"
               >
                 <span>View All Funds</span>
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +256,7 @@ export default function ExplorePage() {
                         </div>
                       )}
 
-                      <button className="mt-5 w-full py-3 bg-gray-900 text-white rounded-xl font-semibold text-sm hover:bg-blue-600 transition-all group-hover:shadow-lg">
+                      <button className="mt-5 w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-600 transition-all group-hover:shadow-lg">
                         View Details
                       </button>
                     </div>
