@@ -137,7 +137,7 @@ export default function WatchlistPage() {
 
   // Watchlist with items
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-[104px] pb-12 px-4">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_200%_100%_at_bottom_left,#ffffff,#dbeafe_60%,#eff6ff_100%)] pt-[104px] pb-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
