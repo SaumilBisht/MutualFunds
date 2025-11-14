@@ -8,7 +8,7 @@ export default async function Dashboard() {
   const user = session?.user
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
 
       <section className="relative min-h-[50vh] px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 flex items-center">
         <div className="max-w-7xl mx-auto w-full">
@@ -18,10 +18,10 @@ export default async function Dashboard() {
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-gray-900">
                 Explore the World of{" "}
                 <span className="relative inline-block">
-                  <span className="relative z-10 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <span className="relative z-10 text-blue-600">
                     Mutual Funds
                   </span>
-                  <span className="absolute -inset-1 bg-gradient-to-r from-blue-200 to-purple-200 blur-lg opacity-30 rounded-lg"></span>
+                  <span className="absolute -inset-1 bg-blue-200 blur-lg opacity-30 rounded-lg"></span>
                 </span>
               </h1>
 
@@ -36,7 +36,7 @@ export default async function Dashboard() {
 
               <Link 
                 href="/explore" 
-                className="inline-block px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
+                className="inline-block px-6 sm:px-8 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
                 Discover all funds
               </Link>

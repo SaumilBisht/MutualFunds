@@ -65,7 +65,7 @@ export default function WatchlistPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16 pb-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-16 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full"></div>
@@ -78,10 +78,10 @@ export default function WatchlistPage() {
   // Not signed in
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16 pb-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-16 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
@@ -92,7 +92,7 @@ export default function WatchlistPage() {
             </p>
             <button
               onClick={() => signIn("google", { callbackUrl: "/watchlist" })}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all inline-flex items-center gap-2"
+              className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 hover:shadow-lg transition-all inline-flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972a6.033 6.033 0 110-12.064c1.498 0 2.866.549 3.921 1.453l2.814-2.814A9.969 9.969 0 0012.545 2C7.021 2 2.543 6.477 2.543 12s4.478 10 10.002 10c8.396 0 10.249-7.85 9.426-11.748l-9.426-.013z" />
@@ -108,7 +108,7 @@ export default function WatchlistPage() {
   // Empty watchlist
   if (watchlist.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16 pb-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-16 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -122,7 +122,7 @@ export default function WatchlistPage() {
             </p>
             <button
               onClick={() => router.push("/explore")}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all inline-flex items-center gap-2"
+              className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 hover:shadow-lg transition-all inline-flex items-center gap-2"
             >
               Explore Mutual Funds
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,12 +137,12 @@ export default function WatchlistPage() {
 
   // Watchlist with items
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pt-16 pb-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-16 pb-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
@@ -197,7 +197,7 @@ export default function WatchlistPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => goToFund(item.schemeCode)}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all text-sm"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 hover:shadow-lg transition-all text-sm"
                   >
                     View Details
                   </button>
@@ -218,7 +218,7 @@ export default function WatchlistPage() {
               </div>
 
               {/* Hover Accent */}
-              <div className="h-1 bg-gradient-to-r from-blue-600 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+              <div className="h-1 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
             </div>
           ))}
         </div>

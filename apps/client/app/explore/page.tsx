@@ -115,14 +115,14 @@ export default function ExplorePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       
       <section className="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Explore Mutual Funds by{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-blue-600">
                 Category
               </span>
             </h1>
@@ -243,7 +243,7 @@ export default function ExplorePage() {
 
                   <button
                     onClick={() => handleCategoryClick(category.slug)}
-                    className="min-w-[150px] bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-5 flex flex-col items-center justify-center text-white hover:shadow-xl transition-all flex-shrink-0"
+                    className="min-w-[150px] bg-blue-600 rounded-xl p-5 flex flex-col items-center justify-center text-white hover:bg-blue-700 hover:shadow-xl transition-all flex-shrink-0"
                   >
                     <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />

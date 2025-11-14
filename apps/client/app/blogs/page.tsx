@@ -215,7 +215,7 @@ export default function BlogsPage() {
                     </div>
                   )}
                   {!isPopular && isTrending && (
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold rounded-full shadow-lg">
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white text-xs font-bold rounded-full shadow-lg">
                       <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
                       </svg>

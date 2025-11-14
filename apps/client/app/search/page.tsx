@@ -102,7 +102,7 @@ export default function SearchPage() {
               </p>
               <Link 
                 href="/explore"
-                className="inline-block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                className="inline-block px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 hover:shadow-lg transition-all"
               >
                 Browse All Funds
               </Link>
