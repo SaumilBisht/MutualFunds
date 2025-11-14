@@ -132,7 +132,7 @@ export default function CategoryPage() {
         <div className="max-w-7xl mx-auto">
           <Link 
             href="/explore"
-            className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-8 transition-colors group"
+            className="inline-flex items-center gap-2 text-sm text-black/80 hover:text-black mb-8 transition-colors group"
           >
             <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -145,13 +145,13 @@ export default function CategoryPage() {
               {currentCategory.title.charAt(0)}
             </div>
             <div className="flex-1">
-              <h1 className="text-4xl sm:text-5xl font-bold mb-3 tracking-tight text-white">
+              <h1 className="text-4xl sm:text-5xl font-bold mb-3 tracking-tight text-black">
                 {currentCategory.title}
               </h1>
-              <p className="text-xl text-white/80 mb-5 leading-relaxed">
+              <p className="text-xl text-black/80 mb-5 leading-relaxed">
                 {currentCategory.description}
               </p>
-              <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-sm font-bold text-white">
+              <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm border border-black/30 rounded-full text-sm font-bold text-black">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

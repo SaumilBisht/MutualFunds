@@ -108,18 +108,18 @@ export default function SubcategoryPage() {
         <div className="max-w-7xl mx-auto">
           
           {/* Breadcrumb Navigation */}
-          <div className="flex items-center gap-2 text-sm text-white/80 mb-8">
-            <Link href="/explore" className="hover:text-white transition-colors font-medium">Explore</Link>
+          <div className="flex items-center gap-2 text-sm text-black/80 mb-8">
+            <Link href="/explore" className="hover:text-black transition-colors font-medium">Explore</Link>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            <Link href={`/explore/${category}`} className="hover:text-white transition-colors font-medium">
+            <Link href={`/explore/${category}`} className="hover:text-black transition-colors font-medium">
               {currentCategory.title}
             </Link>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            <span className="text-white font-bold">{currentSubcategory.title}</span>
+            <span className="text-black font-bold">{currentSubcategory.title}</span>
           </div>
 
           {/* Header Content */}
@@ -128,16 +128,16 @@ export default function SubcategoryPage() {
               {currentCategory.title.charAt(0)}
             </div>
             <div className="flex-1">
-              <div className="inline-flex items-center px-3 py-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-xs font-bold text-white uppercase tracking-wider mb-3">
+              <div className="inline-flex items-center px-3 py-1.5 bg-white/20 backdrop-blur-sm border border-black/30 rounded-full text-xs font-bold text-black uppercase tracking-wider mb-3">
                 {currentCategory.title}
               </div>
-              <h1 className="text-4xl sm:text-5xl font-bold mb-3 tracking-tight text-white">
+              <h1 className="text-4xl sm:text-5xl font-bold mb-3 tracking-tight text-black">
                 {currentSubcategory.title}
               </h1>
-              <p className="text-xl text-white/80 mb-5 leading-relaxed">
+              <p className="text-xl text-black/80 mb-5 leading-relaxed">
                 {currentSubcategory.description}
               </p>
-              <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-sm font-bold text-white">
+              <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm border border-black/20 rounded-full text-sm font-bold text-black">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

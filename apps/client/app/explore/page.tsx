@@ -112,7 +112,7 @@ export default function ExplorePage() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="px-4 sm:px-6 lg:px-8 pt-32 pb-12 sm:pb-16 bg-[radial-gradient(ellipse_200%_100%_at_bottom_left,#183EC2,#EAEEFE_100%)]">
+      <section className="px-4 sm:px-6 lg:px-8 pt-32 pb-12 sm:pb-16 bg-[radial-gradient(ellipse_200%_100%_at_bottom_left,#183EC2,#F0F4FF_100%)]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
             <div className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm border border-black rounded-full text-sm font-medium text-black mb-6">
@@ -131,7 +131,7 @@ export default function ExplorePage() {
               <button
                 key={cat.slug}
                 onClick={() => handleCategoryClick(cat.slug)}
-                className="group px-6 py-3 bg-black backdrop-blur-sm border rounded-xl  hover:border-black transition-all text-sm font-medium text-white  flex items-center gap-2 border-black hover:text-black"
+                className="group px-6 py-3 bg-black backdrop-blur-sm border rounded-xl  hover:border-black transition-all text-sm font-medium text-white  flex items-center gap-2 border-black hover:text-white"
               >
                 <span>{cat.title}</span>
                 <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
