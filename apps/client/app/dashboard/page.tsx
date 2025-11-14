@@ -38,12 +38,12 @@ export default function Dashboard() {
                 </span>
               </h1>
 
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <motion.p 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="text-lg sm:text-xl text-gray-600 leading-relaxed"
+                  className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-700 leading-relaxed"
                 >
                   Your Gateway to Financial <ContainerTextFlip words={words} />
                 </motion.p>
@@ -51,7 +51,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
-                  className="text-base sm:text-lg text-gray-600 leading-relaxed"
+                  className="text-lg sm:text-xl lg:text-2xl font-medium text-gray-600 leading-relaxed"
                 >
                   Join the Journey and Reap the Rewards
                 </motion.p>
