@@ -14,7 +14,7 @@ export default async function Dashboard() {
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-gray-900">
                 Explore the World of{" "}
                 <span className="relative inline-block">
@@ -25,7 +25,7 @@ export default async function Dashboard() {
                 </span>
               </h1>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
                   Your Gateway to Financial freedom
                 </p>
@@ -34,12 +34,14 @@ export default async function Dashboard() {
                 </p>
               </div>
 
-              <Link 
-                href="/explore" 
-                className="inline-block px-6 sm:px-8 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
-              >
-                Discover all funds
-              </Link>
+              <div>
+                <Link 
+                  href="/explore" 
+                  className="inline-block px-6 sm:px-8 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl text-sm sm:text-base"
+                >
+                  Discover all funds
+                </Link>
+              </div>
             </div>
 
             <div className="relative h-64 sm:h-72 lg:h-80 hidden lg:block">
