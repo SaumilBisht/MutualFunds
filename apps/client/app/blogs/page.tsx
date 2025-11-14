@@ -106,55 +106,46 @@ export default function BlogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-[92px]">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-6 py-12 max-w-6xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-4">
-              <BookOpen className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+      <section className="px-4 sm:px-6 lg:px-8 pt-32 pb-16 bg-[radial-gradient(ellipse_200%_100%_at_bottom_left,#f8fafc,#e2e8f0,#dbeafe_90%)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-3xl">
+            <h1 className="text-5xl sm:text-6xl font-bold text-[#0f172a] mb-6 leading-tight">
               Financial Insights & Blog
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-[#0f172a]/80 mb-8 leading-relaxed">
               Discover expert insights, investment strategies, and market analysis to help you make informed financial decisions.
             </p>
-          </div>
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
+            {/* Search Bar */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="text"
-                placeholder="Search blogs by any keyword (e.g., 'devops master' finds 'Mastering DevOps')..."
+                placeholder="Search articles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm text-sm"
+                className="w-full pl-12 pr-4 py-4 bg-white border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 shadow-lg text-base"
               />
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Tags Filter */}
         {allTags.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              Filter by Topic
-            </h2>
+          <div className="mb-10">
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedTag(null)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedTag === null
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-500'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 All Topics
@@ -163,10 +154,10 @@ export default function BlogsPage() {
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     selectedTag === tag
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-500'
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {tag}
@@ -177,14 +168,14 @@ export default function BlogsPage() {
         )}
 
         {/* Results Count */}
-        <div className="mb-6">
+        <div className="mb-8">
           <p className="text-sm text-gray-600">
             {filteredBlogs.length === 0 ? (
-              'No blogs found'
+              'No articles found'
             ) : (
               <>
-                Showing <span className="font-semibold text-gray-900">{filteredBlogs.length}</span>{' '}
-                {filteredBlogs.length === 1 ? 'blog' : 'blogs'}
+                <span className="font-semibold text-gray-900">{filteredBlogs.length}</span>{' '}
+                {filteredBlogs.length === 1 ? 'article' : 'articles'}
                 {searchQuery && ` matching "${searchQuery}"`}
                 {selectedTag && ` in "${selectedTag}"`}
               </>
@@ -194,105 +185,99 @@ export default function BlogsPage() {
 
         {/* Blog Grid */}
         {filteredBlogs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredBlogs.map((blog) => {
               const isPopular = blog.views >= 100;
               const isTrending = blog.views >= 50;
               
               return (
-                <div
+                <article
                   key={blog.id}
                   onClick={() => handleBlogClick(blog.slug)}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-gray-200 group relative"
+                  className="group cursor-pointer"
                 >
-                  {/* Trending/Popular Badge */}
-                  {isPopular && (
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold rounded-full shadow-lg">
-                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      Popular
-                    </div>
-                  )}
-                  {!isPopular && isTrending && (
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white text-xs font-bold rounded-full shadow-lg">
-                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-                      </svg>
-                      Trending
-                    </div>
-                  )}
+                  <div className="relative overflow-hidden rounded-xl bg-gray-100 mb-4">
+                    {/* Trending/Popular Badge */}
+                    {isPopular && (
+                      <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-black/80 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                        Popular
+                      </div>
+                    )}
+                    {!isPopular && isTrending && (
+                      <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-black/80 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                        Trending
+                      </div>
+                    )}
 
-                  {/* Cover Image */}
-                  {blog.coverImage && (
-                    <div className="h-48 overflow-hidden bg-gray-100">
-                      <img
-                        src={blog.coverImage}
-                        alt={blog.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src = '';
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  )}
+                    {/* Cover Image */}
+                    {blog.coverImage ? (
+                      <div className="aspect-[16/10] overflow-hidden">
+                        <img
+                          src={blog.coverImage}
+                          alt={blog.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            e.currentTarget.src = '';
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-[16/10] flex items-center justify-center">
+                        <BookOpen className="h-12 w-12 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
 
                   {/* Content */}
-                  <div className="p-5">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                  <div className="space-y-3">
+                    {/* Tags */}
+                    {blog.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {blog.tags.slice(0, 2).map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-xs font-medium text-gray-600"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <h3 className="text-2xl font-bold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors leading-tight">
                       {blog.title}
                     </h3>
                     
                     {blog.excerpt && (
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
                         {blog.excerpt}
                       </p>
                     )}
 
-                    {/* Tags */}
-                    {blog.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {blog.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200"
-                          >
-                            <Tag className="h-3 w-3" />
-                            {tag}
-                          </span>
-                        ))}
-                        {blog.tags.length > 3 && (
-                          <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                            +{blog.tags.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
                     {/* Meta Info */}
-                    <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-4 text-xs text-gray-500 pt-2">
+                      <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
                         {formatDate(blog.publishedAt || blog.createdAt)}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <Eye className="h-3.5 w-3.5" />
-                        {blog.views || 0} views
+                        {blog.views || 0}
                       </div>
                     </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="h-10 w-10 text-gray-400" />
+          <div className="text-center py-24">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No blogs found</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No articles found</h3>
+            <p className="text-gray-600 mb-6">
               {searchQuery || selectedTag
                 ? 'Try adjusting your search or filter criteria'
                 : 'Check back soon for new content!'}
@@ -303,7 +288,7 @@ export default function BlogsPage() {
                   setSearchQuery('');
                   setSelectedTag(null);
                 }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
               >
                 Clear Filters
               </button>
