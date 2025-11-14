@@ -1,11 +1,24 @@
-import { auth } from "@/auth"
+"use client";
+
 import Link from "next/link"
 import Image from "next/image"
 import { TopFundsSection } from "@/components/TopFundsSection"
+import { ContainerTextFlip } from "@/components/ui/container-text-flip"
+import { motion } from "framer-motion"
 
-export default async function Dashboard() {
-  const session = await auth()
-  const user = session?.user
+export default function Dashboard() {
+  const words = [
+    "freedom",
+    "independence",
+    "growth",
+    "wealth",
+    "security",
+    "prosperity",
+    "success",
+    "abundance",
+    "stability",
+    "confidence",
+  ];
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-[40px]">
@@ -26,12 +39,22 @@ export default async function Dashboard() {
               </h1>
 
               <div className="space-y-1">
-                <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                  Your Gateway to Financial freedom
-                </p>
-                <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-lg sm:text-xl text-gray-600 leading-relaxed"
+                >
+                  Your Gateway to Financial <ContainerTextFlip words={words} />
+                </motion.p>
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="text-base sm:text-lg text-gray-600 leading-relaxed"
+                >
                   Join the Journey and Reap the Rewards
-                </p>
+                </motion.p>
               </div>
 
               <div>
