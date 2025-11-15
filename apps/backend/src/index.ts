@@ -14,6 +14,7 @@ import watchlistRouter from "./routes/watchlist.js";
 import { scheduleAmfiFetch } from "./services/amfiService.js";
 import { adminAuthRouter } from "./routes/admin/auth.js";
 import { adminBlogRouter } from "./routes/admin/blogs.js";
+import adminStoryRouter from "./routes/admin/stories.js";
 
 const app=express();
 app.use(express.json());
@@ -46,6 +47,7 @@ app.use("/api/watchlist", watchlistRouter);
 
 app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api/admin/blogs', adminBlogRouter);
+app.use('/api/admin/stories', adminStoryRouter);
 
 console.log("Initializing AMFI service...");
 scheduleAmfiFetch();
