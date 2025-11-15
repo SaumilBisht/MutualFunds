@@ -124,6 +124,7 @@ export default function Header() {
     { name: "Explore", path: "/explore" },
     ...(user ? [{ name: "Watchlist", path: "/watchlist" }] : []),
     { name: "Portfolio", path: "/portfolio" },
+    { name: "Stories", path: "/stories" },
     { name: "Blogs", path: "/blogs" },
   ]
 

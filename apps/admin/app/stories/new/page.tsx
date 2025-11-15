@@ -277,12 +277,52 @@ export default function CreateStoryPage() {
             <CardHeader>
               <CardTitle>Full Story Content</CardTitle>
               <CardDescription>
-                Write the complete story content
+                Write the complete story content using Markdown formatting
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-sm text-blue-900 mb-2">📝 Markdown Formatting Guide</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-blue-800">
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded"># Heading 1</code>
+                    <span className="ml-2 text-blue-600">Large heading</span>
+                  </div>
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded">## Heading 2</code>
+                    <span className="ml-2 text-blue-600">Medium heading</span>
+                  </div>
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded">**bold text**</code>
+                    <span className="ml-2 text-blue-600">Bold text</span>
+                  </div>
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded">*italic text*</code>
+                    <span className="ml-2 text-blue-600">Italic text</span>
+                  </div>
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded">- List item</code>
+                    <span className="ml-2 text-blue-600">Bullet point</span>
+                  </div>
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded">1. List item</code>
+                    <span className="ml-2 text-blue-600">Numbered list</span>
+                  </div>
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded">[Link](url)</code>
+                    <span className="ml-2 text-blue-600">Hyperlink</span>
+                  </div>
+                  <div>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded">`code`</code>
+                    <span className="ml-2 text-blue-600">Inline code</span>
+                  </div>
+                </div>
+                <p className="text-xs text-blue-700 mt-3">
+                  💡 Tip: Use double line breaks to create new paragraphs
+                </p>
+              </div>
               <textarea
-                placeholder="Write your story here..."
+                placeholder="Write your story here using Markdown...\n\nExample:\n# Market Rally Continues\n\nThe stock market saw **significant gains** today as investors responded positively to:\n\n- Strong earnings reports\n- Positive economic indicators\n- Reduced inflation concerns"
                 value={formData.content}
                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 className="w-full min-h-[400px] p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono text-sm"

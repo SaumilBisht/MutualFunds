@@ -109,13 +109,22 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // Increment views
-    await prisma.story.update({
+    // Increment views and get updated story
+    const updatedStory = await prisma.story.update({
       where: { id },
       data: { views: { increment: 1 } },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
 
-    res.json({ success: true, data: story });
+    res.json({ success: true, data: updatedStory });
   } catch (error: any) {
     console.error('Get story error:', error);
     res.status(500).json({ 
