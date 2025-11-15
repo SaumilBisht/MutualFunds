@@ -329,6 +329,7 @@ model Admin {
   updatedAt DateTime @updatedAt
   
   blogs     Blog[]
+  stories   Story[]
 }
 
 enum AdminRole {
@@ -361,6 +362,35 @@ model Blog {
 }
 
 enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Story {
+  id          String      @id @default(cuid())
+  label       String      // e.g. "Trending", "StockWire", etc.
+  heading     String      // Main heading/title
+  teaser      String      @db.Text // 2-3 lines teaser/description
+  imageUrl    String      // Cover image URL
+  content     String      @db.Text // Full story content
+  status      StoryStatus @default(DRAFT)
+  
+  authorId    String
+  author      Admin       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  views       Int         @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([label])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([heading])
+}
+
+enum StoryStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
