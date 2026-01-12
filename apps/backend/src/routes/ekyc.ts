@@ -31,7 +31,44 @@ const digioClient = axios.create({
   },
 });
 
-
+/**
+ * POST /ekyc/pan-dob-verify
+ * 
+ * Verifies user's PAN + DOB with Income Tax database and checks KRA/CKYC registration.
+ * 
+ * TWO-STEP VERIFICATION:
+ * 
+ * **STEP 1: PAN-DOB Verification (Income Tax DB)**
+ * - Calls Digio API → Income Tax Department database
+ * - Validates PAN exists and matches DOB
+ * - Returns: VERIFIED or INVALID
+ * 
+ * **STEP 2: KRA/CKYC Status Check**
+ * - Queries KRA (KYC Registration Agency) database
+ * - Checks if PAN already has verified KYC
+ * - Statuses:
+ *   * VALIDATED: User already KYC-verified (skip Aadhaar flow)
+ *   * REGISTERED: KYC submitted but pending
+ *   * NOT FOUND: User must complete eKYC via Aadhaar
+ * 
+ * ROUTING LOGIC:
+ * - If KRA VALIDATED → User proceeds to personal details (Step 3)
+ * - If NOT FOUND → User must complete Aadhaar-based eKYC
+ * 
+ * DATABASE UPDATES:
+ * - Saves encrypted PAN
+ * - Updates kycStatus (PENDING or VERIFIED)
+ * - Saves CKYC reference ID if found
+ * - Sets currentStep (2 or 3)
+ * 
+ * @param {string} req.body.pan - 10-char PAN (validated by panDobSchema)
+ * @param {string} req.body.dob - DOB in YYYY-MM-DD format
+ * @returns {Object} { success, message, nextStep: "personal" | "aadhaar_upload" }
+ * 
+ * @example
+ * Request:  { "pan": "ABCDE1234F", "dob": "1990-01-01" }
+ * Response: { "success": true, "message": "User KYC already verified", "nextStep": "personal" }
+ */
 router.post("/pan-dob-verify", verifyAuth, async (req, res) => {
   const data =panDobSchema.parse(req.body);
   const { pan, dob } = data;

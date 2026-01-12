@@ -42,6 +42,30 @@ interface AuthRequest extends Request {
 
 const router: Router = express.Router();
 
+/**
+ * POST /kyc/redirect
+ * 
+ * Initiates DigiLocker-based KYC verification flow using OAuth 2.0 with PKCE.
+ * 
+ * WORKFLOW:
+ * 1. Validates and encrypts user's PAN number
+ * 2. Generates PKCE challenge (Code Verifier + Code Challenge) for secure OAuth
+ * 3. Creates a time-limited KYC session (10 min expiry) with unique state
+ * 4. Returns DigiLocker authorization URL for user to authenticate with Aadhaar
+ * 
+ * SECURITY:
+ * - Uses PKCE (Proof Key for Code Exchange) to prevent authorization code interception
+ * - State parameter prevents CSRF attacks
+ * - PAN stored encrypted in database
+ * - Session expires in 10 minutes
+ * 
+ * @param {string} req.body.pan - 10-character PAN (format: AAAAA9999A)
+ * @returns {Object} { authUrl: string } - DigiLocker OAuth URL to redirect user
+ * 
+ * @example
+ * Request:  { "pan": "ABCDE1234F" }
+ * Response: { "authUrl": "https://digilocker.gov.in/oauth2/authorize?..." }
+ */
 router.post('/redirect', verifyAuth, async (req: AuthRequest, res: Response) => {
   try 
   {
@@ -83,6 +107,35 @@ router.post('/redirect', verifyAuth, async (req: AuthRequest, res: Response) => 
   }
 });
 
+/**
+ * GET /kyc/callback
+ * 
+ * DigiLocker OAuth callback endpoint - completes KYC verification after user authenticates.
+ * 
+ * FULL WORKFLOW (executed in sequence):
+ * 1. **Session Validation**: Verify state parameter matches active KYC session
+ * 2. **Token Exchange**: Exchange OAuth code for access + refresh tokens using PKCE verifier
+ * 3. **Aadhaar Fetch**: Retrieve user's Aadhaar details (name, DOB, address, photo) from DigiLocker
+ * 4. **PAN-Aadhaar Linkage**: Verify user's PAN is linked to their Aadhaar (govt requirement)
+ * 5. **KRA Validation**: Check if user is registered in KRA/CKYC database
+ * 6. **Auto KRA Registration**: If not in KRA, attempt registration with Aadhaar XML + photo + signature
+ * 7. **Database Update**: Save all KYC data (encrypted tokens, Aadhaar info, KRA status)
+ * 
+ * ERROR HANDLING:
+ * - Invalid/expired session → redirect to frontend with error
+ * - PAN-Aadhaar not linked → reject KYC (regulatory requirement)
+ * - PAN mismatch → reject and show correct PAN linked to Aadhaar
+ * - KRA registration failure → non-blocking (user can trade with pending status)
+ * 
+ * SECURITY:
+ * - Tokens encrypted before storage (AES-256)
+ * - Raw Aadhaar XML sent to KRA for validation
+ * - Session marked as COMPLETED/FAILED to prevent replay
+ * 
+ * @param {string} req.query.code - OAuth authorization code from DigiLocker
+ * @param {string} req.query.state - CSRF protection token (matches session state)
+ * @redirects Frontend with success=true or error parameter
+ */
 router.get('/callback', async (req: Request, res: Response) => {
   try 
   {

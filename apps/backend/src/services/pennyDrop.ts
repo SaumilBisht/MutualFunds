@@ -34,6 +34,38 @@ function levenshteinDistance(str1: string, str2: string): number {
   return dp[len1]![len2]!;
 }
 
+/**
+ * Calculates similarity score between two names using Levenshtein distance algorithm.
+ * 
+ * USE CASE:
+ * After penny drop verification, bank returns beneficiary name.
+ * We compare it with user's registered name to detect typos or fraud.
+ * 
+ * ALGORITHM (Levenshtein Distance):
+ * - Measures minimum edit operations (insert/delete/substitute) to transform name1 → name2
+ * - Lower distance = more similar names
+ * - Example: "JOHN DOE" vs "JON DOE" = 1 operation (add 'H') = 96% match
+ * 
+ * NORMALIZATION STEPS:
+ * 1. Convert to uppercase
+ * 2. Remove special characters (dots, hyphens, etc.)
+ * 3. Collapse multiple spaces to single space
+ * 4. Trim whitespace
+ * 
+ * SCORE INTERPRETATION:
+ * - 100: Exact match
+ * - 90-99: Very likely same person (minor typo)
+ * - 80-89: Possibly same person (check manually)
+ * - <80: Likely different person (reject or flag)
+ * 
+ * @param {string} name1 - User's registered name
+ * @param {string} name2 - Bank's beneficiary name
+ * @returns {number} Similarity score 0-100
+ * 
+ * @example
+ * calculateNameMatchScore("John Doe", "Jon Doe") // 96
+ * calculateNameMatchScore("RAJESH KUMAR", "RAJESH K") // 85
+ */
 export function calculateNameMatchScore(name1: string, name2: string): number {
   // Normalize: uppercase, remove extra spaces, remove special characters
   const normalize = (str: string) => {
@@ -61,6 +93,41 @@ export function calculateNameMatchScore(name1: string, name2: string): number {
   return Math.round(similarity);
 }
 
+/**
+ * Verifies bank account ownership by initiating a ₹1 penny drop transfer.
+ * 
+ * PENNY DROP PROCESS:
+ * 1. Create RazorpayX fund account with user's bank details
+ * 2. Initiate ₹1 transfer to the account
+ * 3. Bank returns beneficiary name (account holder's name)
+ * 4. Compare returned name with user's registered name using fuzzy matching
+ * 5. Verify = success if name match score ≥ 80%
+ * 
+ * WHY PENNY DROP?
+ * - Confirms account exists and is active
+ * - Verifies user owns the account (name match)
+ * - Prevents fraud (wrong account linking)
+ * - Required by RBI/SEBI for financial services
+ * 
+ * RAZORPAYX WORKFLOW:
+ * - Uses Test Mode for development
+ * - Live Mode for production (actual ₹1 transfer)
+ * - Transfers settle in 1-2 business days
+ * - Beneficiary can keep the ₹1 :)
+ * 
+ * ERROR SCENARIOS:
+ * - Invalid IFSC code
+ * - Account number mismatch
+ * - Closed/dormant account
+ * - Bank server down
+ * - Name mismatch (< 80% similarity)
+ * 
+ * @param {string} accountNumber - Bank account number
+ * @param {string} ifscCode - 11-character IFSC code
+ * @param {string} accountHolderName - User's registered name for matching
+ * @param {string} [existingFundAccountId] - Reuse existing fund account if available
+ * @returns {Promise<Object>} { success, verified, bankName, beneficiaryName, nameMatchScore, error }
+ */
 export async function verifyBankAccountWithPennyDrop(
   accountNumber: string,
   ifscCode: string,

@@ -99,6 +99,24 @@ async function nextSequence(): Promise<number> {
   return next;
 }
 
+/**
+ * Generates a unique UCC (Unique Client Code) for NSE mutual fund trading.
+ * 
+ * FORMAT: [PREFIX][USER_ID_5_CHARS][SEQUENCE_4_DIGITS]
+ * Example: ENXABCDE0001
+ * 
+ * COMPONENTS:
+ * - PREFIX: Configurable via UCC_PREFIX env (default: "ENX")
+ * - USER_ID: First 5 alphanumeric chars from userId (padded with 'X' if shorter)
+ * - SEQUENCE: Auto-incremented Redis counter (4 digits, padded with zeros)
+ * 
+ * CONCURRENCY SAFETY:
+ * - Uses Redis INCR (atomic operation) to prevent duplicate UCCs
+ * - Safe across multiple server instances
+ * 
+ * @param {string} userId - Unique user ID from database
+ * @returns {Promise<string>} Generated UCC (e.g., "ENXABCDE0001")
+ */
 export async function generateUCC(userId: string) {
   // Build USER_ID_PADDED from userId alphanumerics
   const compact = userId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -128,6 +146,32 @@ export type CreateUccParams = {
   country?: string;
 };
 
+/**
+ * Creates UCC registration with NSE MFDesk API (Client Common Registration).
+ * 
+ * WORKFLOW:
+ * 1. Validates PAN format (AAAAA9999A)
+ * 2. Generates unique UCC using generateUCC()
+ * 3. Calls NSE API endpoint: /api/v2/registration/CLIENTCOMMON183
+ * 4. Signs request with HMAC-SHA256 signature
+ * 
+ * REQUIRED DATA:
+ * - Personal: Name, DOB, PAN, Gender, Occupation, Tax Status
+ * - Bank: Account Number, IFSC, Account Type
+ * - Address: Line1, City, State, Pincode, Country
+ * - Contact: Email, Phone
+ * - KYC: Type (K=KRA Validated, E=eKYC)
+ * 
+ * NSE RULES:
+ * - PAN must be valid and not PAN-exempt
+ * - Default bank flag must be 'Y' for primary account
+ * - Paperless flag 'Z' for digital onboarding
+ * - Communication mode 'E' for email
+ * 
+ * @param {CreateUccParams} params - User registration details
+ * @returns {Promise<string>} Generated UCC if successful
+ * @throws {Error} If PAN invalid or NSE API rejects registration
+ */
 export async function createUCC(params: CreateUccParams) {
   const {
     userId,
@@ -359,6 +403,37 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+/**
+ * Orchestrates complete NSE activation: UCC → FATCA → Bank → OTP.
+ * 
+ * FULL WORKFLOW (executed sequentially):
+ * 1. **Fetch User**: Get user data from database (must have KYC completed)
+ * 2. **Create UCC**: Register client with NSE (generates unique client code)
+ * 3. **Upload FATCA**: Submit tax residency declaration (Individual form)
+ * 4. **Register Bank**: Link user's verified bank account
+ * 5. **Send OTP**: Trigger mobile OTP for eLOG (electronic log) signature
+ * 6. **Update DB**: Save UCC, NSE status, and masked contact info
+ * 
+ * PREREQUISITES:
+ * - User must have completed KYC (kycStatus = 'VERIFIED')
+ * - User must have verified bank details
+ * - User must have valid PAN, DOB, and address
+ * 
+ * NSE REGISTRATION STEPS:
+ * - UCC: Client Common Registration (CLIENTCOMMON183)
+ * - FATCA: Foreign Account Tax Compliance (FATCA062)
+ * - Bank: Bank Account Registration (BANKDETAILSUPLOAD163)
+ * - OTP: Mobile verification for eLOG signature
+ * 
+ * ERROR HANDLING:
+ * - Partial failures are logged but don't rollback previous steps
+ * - User can retry activation if OTP sending fails
+ * - UCC is persisted even if FATCA/Bank fails (can be resumed)
+ * 
+ * @param {string} userId - User ID to activate
+ * @returns {Promise<Object>} { success: boolean, ucc: string, message: string, maskedEmail, maskedPhone }
+ * @throws {Error} If user not found, KYC incomplete, or NSE API errors
+ */
 export async function activateNseForUser(userId: string) {
   // Fetch user and required fields
   const user = await prisma.user.findUnique({ where: { id: userId } });

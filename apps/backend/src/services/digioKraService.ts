@@ -38,6 +38,30 @@ export interface KraRegistrationResponse {
   errorCode?: string;
 }
 
+/**
+ * Checks if a PAN is registered and validated in KRA/CKYC database.
+ * 
+ * KRA (KYC Registration Agency) is a centralized KYC repository mandated by SEBI.
+ * All mutual fund investors must be KRA-verified to trade.
+ * 
+ * STATUS CODES (KRA):
+ * - "007" = VALIDATED (KYC complete, ready to trade)
+ * - "005" = REGISTERED (KYC uploaded but pending validation)
+ * - "003" = NOT FOUND (PAN not in KRA database)
+ * - "002" = REJECTED (KYC documents rejected)
+ * 
+ * WORKFLOW:
+ * 1. Calls Digio API → Digio queries KRA/CKYC via NDML/CDSL
+ * 2. Returns status + reference ID
+ * 3. If VALIDATED: user can trade immediately
+ * 4. If NOT FOUND: must register (see registerKra function)
+ * 
+ * @param {string} panNo - 10-character PAN (e.g., "ABCDE1234F")
+ * @param {string} dob - Date of birth in DD/MM/YYYY format
+ * @param {string} mobile - 10-digit mobile number
+ * @returns {Promise<KraStatusResponse>} Status, refId, and validation flag
+ * @throws {Error} If Digio API fails or PAN format invalid
+ */
 export async function checkPanStatus(
   panNo: string,
   dob: string, 
@@ -83,12 +107,38 @@ export async function checkPanStatus(
 }
 
 /**
- * Register KRA with Digio
- * Updated to comply with CVL KRA rules (effective Aug 2025):
- * - PAN no longer accepted as Proof of Identity (POI)
- * - Must use Aadhaar (UID) as POI
- * - pan_copy must be "N"
- * - app_exmt_id_proof must be "02" (UID/Aadhaar)
+ * Registers user in KRA/CKYC database using Aadhaar-based eKYC.
+ * 
+ * NEW CVL KRA RULES (Effective Aug 2025):
+ * - PAN is NO LONGER accepted as Proof of Identity (POI)
+ * - MUST use Aadhaar (UID) as POI
+ * - `pan_copy` must be "N" (PAN cannot be uploaded as POI document)
+ * - `app_exmt_id_proof` must be "02" (UID/Aadhaar)
+ * 
+ * REQUIRED DOCUMENTS:
+ * 1. **Aadhaar XML** (Base64): Raw eAadhaar XML from DigiLocker (for UIDAI verification)
+ * 2. **Photo** (Base64): JPEG photo from Aadhaar (POI + POA)
+ * 3. **Signature** (Base64): User's signature from S3 upload
+ * 
+ * WORKFLOW:
+ * 1. Validates all required fields (PAN, DOB, Aadhaar, addresses)
+ * 2. Encodes documents to Base64 if not already
+ * 3. Calls Digio API → Digio submits to KRA via NDML/CDSL
+ * 4. Returns registration reference ID
+ * 
+ * SUCCESS CRITERIA:
+ * - Status = "VALIDATED" or "REGISTERED"
+ * - RefId returned (use for tracking)
+ * 
+ * FAILURE REASONS:
+ * - Missing Aadhaar XML or photo
+ * - Address mismatch with Aadhaar
+ * - Photo quality too low
+ * - Signature missing (required for some AMCs)
+ * 
+ * @param {Object} params - Complete user KYC details
+ * @returns {Promise<KraRegistrationResponse>} Success status + refId
+ * @throws {Error} If Digio API rejects registration
  */
 export async function registerKra(params: {
   panNo: string;

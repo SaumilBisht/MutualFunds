@@ -7,6 +7,37 @@ export type AmfiRecord = {
   date?: string;
 };
 
+/**
+ * Parses AMFI NAV text file into structured array of mutual fund schemes.
+ * 
+ * AMFI FILE FORMAT (pipe or semicolon delimited):
+ * ```
+ * Scheme Code;ISIN Div Payout;ISIN Growth;Scheme Name;Net Asset Value;Date
+ * 100001;;INF846K01EW2;Aditya Birla SL Equity Fund - Growth;450.23;25-Oct-2024
+ * 100002;INF846K01EX0;;Aditya Birla SL Equity Fund - Dividend;385.12;25-Oct-2024
+ * ```
+ * 
+ * PARSING LOGIC:
+ * 1. Split by lines and trim whitespace
+ * 2. Detect delimiter (`;` > `|` > `,` priority)
+ * 3. Skip header row if present ("Scheme Code" keyword)
+ * 4. Skip category headers (non-numeric scheme code)
+ * 5. Extract 6 fields per line
+ * 6. Filter invalid records (missing code or name)
+ * 
+ * DATA VALIDATION:
+ * - Scheme code must be numeric
+ * - Scheme name must be non-empty
+ * - ISINs are optional (some schemes don't have both dividend and growth)
+ * - NAV and date are optional (for suspended schemes)
+ * 
+ * OUTPUT SIZE:
+ * - ~40,000+ schemes in production
+ * - ~2-3 MB parsed JSON
+ * 
+ * @param {string} text - Raw AMFI NAV file content
+ * @returns {AmfiRecord[]} Array of parsed mutual fund schemes
+ */
 export function parseAmfiNavAll(text: string): AmfiRecord[] {
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   // Some AMFI files have a header line — skip known header

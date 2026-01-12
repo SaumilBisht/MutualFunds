@@ -6,6 +6,44 @@ import { prisma } from "db/client";
 
 const bankRouter: Router = express.Router();
 
+/**
+ * POST /bank/verify`
+
+ * Verifies user's bank account using penny drop method (₹1 transfer).
+
+ * VERIFICATION WORKFLOW:
+ * 1. **Input Validation**: Validates all bank details format
+ *    - Account number: 9-20 digits
+ *    - IFSC: Format AAAA0BBBBBB (4 letters, 0, 6 alphanumeric)
+ *    - Account type: "savings" or "current"
+ *    - Holder name: Min 3 characters
+
+ * 2. **Penny Drop Transfer**: Initiates ₹1 transfer via RazorpayX
+ *    - Creates fund account with user's bank details
+ *    - Triggers instant transfer
+ *    - Bank returns beneficiary name (real account holder)
+ * 
+ * 3. **Name Matching**: Compares names using fuzzy matching
+ *    - Score ≥ 80%: Verified ✓
+ *    - Score < 80%: Name mismatch (rejection)
+ 
+ * 4. **Database Update**: Saves verified bank details
+ *    - Encrypted account number
+ *    - Bank verification status
+ *    - Name match score
+ *    - Timestamp
+
+ * SECURITY:
+ * - Only verified banks can be used for withdrawals
+ * - Prevents unauthorized account linking
+ * - RBI/SEBI compliance for financial services
+
+ * ERROR SCENARIOS:
+ * - Invalid IFSC: Returns error with correction suggestion
+ * - Closed account: RazorpayX returns failure
+ * - Name mismatch: Returns name match score and bank's name
+ * - Network failure: User can retry
+ */
 bankRouter.post("/verify", verifyAuth,async (req: Request, res: Response) => {
   try 
   {

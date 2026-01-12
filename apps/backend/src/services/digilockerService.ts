@@ -16,7 +16,23 @@ const DIGILOCKER_BASE_URL = process.env.DIGILOCKER_BASE_URL || 'https://dev-meri
 const CLIENT_ID = process.env.DIGILOCKER_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.DIGILOCKER_CLIENT_SECRET || '';
 const REDIRECT_URI = process.env.DIGILOCKER_REDIRECT_URI || 'http://localhost:3000/kyc/callback';
-// Generate PKCE code verifier and challenge
+
+/**
+ * Generates PKCE (Proof Key for Code Exchange) for secure OAuth 2.0 flow.
+ * 
+ * PKCE PREVENTS:
+ * - Authorization code interception attacks
+ * - Mobile app security vulnerabilities
+ * - Public client credential exposure
+ * 
+ * HOW IT WORKS:
+ * 1. Generate random code_verifier (43-128 chars, base64url)
+ * 2. Create code_challenge = SHA256(code_verifier)
+ * 3. Send code_challenge to DigiLocker during auth request
+ * 4. Send code_verifier during token exchange (proves you initiated the flow)
+ * 
+ * @returns {Object} { codeVerifier: string, codeChallenge: string }
+ */
 export function generatePKCE() {
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
   const codeChallenge = crypto
@@ -56,7 +72,24 @@ export function buildAuthUrl(state: string, codeChallenge: string) {
   return authUrl;
 }
 
-// Exchange authorization code for access token
+/**
+ * Exchanges OAuth authorization code for access + refresh tokens.
+ * 
+ * OAUTH FLOW (Step 2 of 3):
+ * Step 1: User authenticates → DigiLocker redirects with `code`
+ * Step 2: **[THIS FUNCTION]** Exchange `code` for tokens using PKCE verifier
+ * Step 3: Use access_token to fetch Aadhaar data
+ * 
+ * SECURITY:
+ * - Requires code_verifier to prove you generated the original PKCE challenge
+ * - Tokens are short-lived (access: 1 hour, refresh: 30 days)
+ * - Must be called from backend (never expose client_secret to frontend)
+ * 
+ * @param {string} code - Authorization code from DigiLocker callback
+ * @param {string} codeVerifier - PKCE verifier generated in Step 1
+ * @returns {Promise<Object>} { accessToken, refreshToken, expiresIn }
+ * @throws {Error} If code is invalid/expired or PKCE verification fails
+ */
 export async function exchangeCodeForToken(code: string, codeVerifier: string) {
   try {
     const response = await axios.post(
@@ -116,7 +149,36 @@ export async function refreshAccessToken(refreshToken: string) {
   }
 }
 
-// Fetch Aadhaar details from DigiLocker (Correct endpoint)
+/**
+ * Fetches user's Aadhaar details from DigiLocker as XML and parses to JSON.
+ * 
+ * DATA RETURNED:
+ * - Personal: Name, DOB, Gender, Aadhaar last 4 digits
+ * - Address: House, Street, Landmark, Village/City, District, State, Pincode
+ * - Photo: Base64-encoded JPEG image from Aadhaar
+ * - Phone: Mobile number (if linked to Aadhaar)
+ * - Raw XML: Original eAadhaar XML (needed for KRA registration)
+ * 
+ * XML STRUCTURE (OfflinePaperlessKyc):
+ * ```xml
+ * <OfflinePaperlessKyc>
+ *   <UidData>
+ *     <Poi name="John Doe" dob="01-01-1990" gender="M" />
+ *     <Poa house="123" street="Main St" ... />
+ *     <Pht>base64_photo_data</Pht>
+ *   </UidData>
+ * </OfflinePaperlessKyc>
+ * ```
+ * 
+ * USE CASES:
+ * - Auto-fill user profile (name, DOB, address)
+ * - Verify PAN-Aadhaar linkage
+ * - KRA registration (requires raw XML + photo)
+ * 
+ * @param {string} accessToken - DigiLocker OAuth access token
+ * @returns {Promise<Object>} Parsed Aadhaar data + rawXml string
+ * @throws {Error} If token expired or DigiLocker API error
+ */
 export async function getAadhaarDetails(accessToken: string) {
   try {
     const response = await axios.get(
